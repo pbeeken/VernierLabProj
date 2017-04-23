@@ -1,11 +1,13 @@
-**VernierControl**
+VernierControl
+==============
 
 This is a collection of libraries to facilitate data acquisition by an Arduino
 equipped with a Vernier Shield.  Each library file is specific to a particular
 device or circumstance. The ultimate destination for these routines is to supervise
 the Arduino with a python library that can be imported into a Jupyter notebook.
 
-_Structure of Library Routines_
+Structure of Library Routines
+-----------------------------
 There are a number of libraries for control of the Vernier Shield.  The design
 of this system is predicated on the idea that the student knows what sensor
 they are connecting.  So even though there is an object for detection of a
@@ -13,8 +15,10 @@ sensor based on its resistance (old school) and room for future expansion using
 I2C communication (new school) we shouldn't need this as the idea is to have
 the students put the components together according to their specific circumstances.
 
+_Directory Structure_
 The source code of each library should be placed in separate directory, like
 "lib/private_lib/[here are source files]".
+```
 |--lib
 |  |--VernierAnalogSensor
 |  |  |--examples
@@ -67,7 +71,8 @@ The source code of each library should be placed in separate directory, like
 |- platformio.ini
 |--src
    |- main.cpp
-
+```
+_Testing and execution_
 Then in `src/main.cpp` you should use:
 __________________________________________
 #include <Streaming>
@@ -84,3 +89,7 @@ include paths and build them.
 
 More information about PlatformIO Library Dependency Finder
 - http://docs.platformio.org/en/stable/librarymanager/ldf.html
+
+Organization of Commands
+------------------------
+
