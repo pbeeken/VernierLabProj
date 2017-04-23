@@ -74,16 +74,16 @@ The source code of each library should be placed in separate directory, like
 ```
 _Testing and execution_
 Then in `src/main.cpp` you should use:
-__________________________________________
+
+```c++
 #include <Streaming>
 #include <VernierBlinker.h>
 #include <VernierVoltage.h>
 
-// rest H/C/CPP code
+  // rest H/C/CPP code
 setup() {}
 loop()  {}
-__________________________________________
-
+```
 PlatformIO will find your libraries automatically, configure preprocessor's
 include paths and build them.
 
