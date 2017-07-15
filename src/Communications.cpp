@@ -13,23 +13,29 @@ void setup()
 {
    Serial.begin(115200);
 
-   theLED.turnOn();
-   delay(1000);      // 1 second
-   theLED.turnOff();
+   for( int i=0; i<6; i++) {
+      delay(100);
+      theLED.turnOn();
+      delay(100);
+      theLED.turnOff();
+   }
+   Serial << "BEG;" << endl;
 }
 
 
 void loop()
 {
+//   cmd.CollectCommand();
+
    if (cmd.isCommandComplete())
    {
-      if (cmd.isCommand("ON"))
+      if (cmd.isCommand("LDA")&&cmd.getParameter()==1)
          theLED.turnOn();
-      if (cmd.isCommand("OFF"))
+      if (cmd.isCommand("LDA")&&cmd.getParameter()==0)
          theLED.turnOff();
-      if (cmd.isCommand("BLK"))
+      if (cmd.isCommand("LDA")&&cmd.getParameter()>1)
          theLED.blinkFor(cmd.getParameter());
-      Serial << ".." << cmd.getParameter() << ".." << endl;
+      Serial << cmd.getCommand() << ".." << cmd.getParameter() << ";" << endl;
       cmd.commandComplete();           // we are done carrying out orders
    }
 }

@@ -18,20 +18,17 @@ public:
    ShieldCommunication();
 
    void CollectCommand();
-   bool isCommandComplete (){
-      return isComplete;
-   }
-
+   bool isCommandComplete () { return isComplete; }
    int getParameter();
+   String getCommand() { return command; }
    bool isCommand(const char* tstCmd);
-   void commandComplete (){
-      resetCommand();
-   }
+   void commandComplete () { resetCommand(); }
 
 protected:
    void resetCommand(){
-      command.clear();
-      parameter.clear();
+      command="";
+      parameter=""
+      ;
       isComplete = false;
    }
 private:

@@ -13,6 +13,15 @@
 
 #include <ShieldCommunication.h>
 
+// union converter {
+//    struct {
+//       byte msb: 8;
+//       byte lsb: 8;
+//    } parts;
+//    int whole;
+// };
+
+
 ShieldCommunication::ShieldCommunication(){
    isComplete = false;
    command.reserve(5);
@@ -34,9 +43,9 @@ ShieldCommunication::isCommand (const char* tstCmd){
  *  This routine is intended for the serialEvent stub where this object
  *  waits for and collects the commands.  Commands consist of the following
  *  elements which, in turn, control how this parser works:
- *  Commands start with 3 letters a set of optional numbers terminated by a
- *  semicolon. Spaces, carriage returns, indeed all non-printables are ignored.
- *
+ *  Commands start with 3 letters white space and a set of optional numbers
+ *  terminated by a semicolon. Spaces, carriage returns,
+ *  indeed all non-printables are ignored.
  */
 void
 ShieldCommunication::CollectCommand (){
@@ -59,9 +68,7 @@ ShieldCommunication::CollectCommand (){
             }
             else                       // invalid elements clear and start again
             {
-               isComplete = false;
-               command.clear();
-               parameter.clear();
+               resetCommand();
             }
          }
       }
