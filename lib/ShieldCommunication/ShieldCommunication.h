@@ -13,29 +13,51 @@
 #define ShieldCommunication_h
 #include <Arduino.h>
 
+enum CMDS {
+   HALT = 0x2C,
+   GO   = 0x28,
+   BTN  = 0x24,
+
+   DIGMDE1 = 0x31,
+   DIGMDE2 = 0x35,
+
+   ANAMDE1 = 0x42,
+   ANAMDE2 = 0x46,
+   ANAMDEB = 0x4A,
+
+   STATUS  = 0x50,
+   TRIGMODE = 0x52,
+
+   IMMEDA1 = 0x60,
+   IMMEDA2 = 0x64,
+   IMMEDD1 = 0x70,
+   IMMEDD2 = 0x74,
+
+};
+
 class ShieldCommunication {
+
 public:
    ShieldCommunication();
 
-   void CollectCommand();
-   bool isCommandComplete () { return isComplete; }
-   int getParameter();
-   String getCommand() { return command; }
-   bool isCommand(const char* tstCmd);
-   void commandComplete () { resetCommand(); }
+   void collectCommand();
+   bool isReadyToReceive();
+   bool isCommandComplete();
+   bool isInProgress();
+   void commandSuccessful();
+   void badCommand();
+   void sendStatus( char state);
+   int  getCommand();
+   int  getParameter();
 
-protected:
-   void resetCommand(){
-      command="";
-      parameter=""
-      ;
-      isComplete = false;
-   }
 private:
-   String command;
-   String parameter;
+   char command;
+   char param1;
+   char param2;
 
-   bool   isComplete;
+   char commandStatus;  // COMPLETE PROGRESSING or READY
+                        // -1       >0             ==0
+   char cmdCount;
 };
 
 #endif
