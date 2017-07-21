@@ -14,7 +14,7 @@ class VernierButton
     VernierButton( int pin=12 );			// Constructor. Mainly sets up pins.
     bool readSinglePush();	// read a single button push (as a button up) May block for a short time.
     bool readDoublePush();	// read a double tap. BLOCKS for human reaction time
-    int	 readPushes();			// count multiple pushes
+    int	readPushes();			// count multiple pushes
     bool buttonIsDown();		// raw read from button. Non-Blocking
 
 #ifdef USEINTERUPTS

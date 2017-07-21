@@ -41,9 +41,9 @@ public:
    ShieldCommunication();
 
    void collectCommand();
-   bool isReadyToReceive();
+   bool isReadyToBuild();
    bool isCommandComplete();
-   bool isInProgress();
+   bool isCommandBuilding();
    void commandSuccessful();
    void badCommand();
    void sendStatus( char state);
@@ -51,13 +51,13 @@ public:
    int  getParameter();
 
 private:
-   char command;
-   char param1;
-   char param2;
+   char _command;
+   char _param1;
+   char _param2;
 
-   char commandStatus;  // COMPLETE PROGRESSING or READY
+   char _commandStatus;  // COMPLETE BUILDING or READY
                         // -1       >0             ==0
-   char cmdCount;
+   char _cmdCount;
 };
 
 #endif

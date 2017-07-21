@@ -19,5 +19,5 @@ enum state {
 
 
 ShieldControl::ShieldControl() {
-
+   state = READY;
 }

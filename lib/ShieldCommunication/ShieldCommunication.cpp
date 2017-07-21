@@ -20,7 +20,7 @@
  * Initialize object to receive
  */
 ShieldCommunication::ShieldCommunication() {
-   commandStatus = -1;
+   _commandStatus = -1;
    // Command is complete, we are ready for another command
 }
 
@@ -28,8 +28,8 @@ ShieldCommunication::ShieldCommunication() {
  * Ask if the cocommand is still being built
  */
 bool
-ShieldCommunication::isInProgress() {
-   return commandStatus>0;
+ShieldCommunication::isCommandBuilding() {
+   return _commandStatus>0;
 }
 
 /**
@@ -37,20 +37,20 @@ ShieldCommunication::isInProgress() {
  */
 bool
 ShieldCommunication::isCommandComplete() {
-   return commandStatus==0;
+   return _commandStatus==0;
 }
 
 /**
  * Ask if the command is ready to be built.
  */
 bool
-ShieldCommunication::isReadyToReceive() {
-   return commandStatus!=0;
+ShieldCommunication::isReadyToBuild() {
+   return _commandStatus!=0;
 }
 
 
 /** CollectCommand
- *  This routine is intended for the serialEvent stub where this object
+ *  This routine is intended for the serialEvent ISR where this object
  *  waits for and collects the commands.  Commands consist of the following
  *  elements which, in turn, control how this parser works:
  * OLD SCHOOL
@@ -65,7 +65,10 @@ ShieldCommunication::isReadyToReceive() {
  */
 void
 ShieldCommunication::collectCommand() {
-   // If the previous command wasn't handled then we don't do anything.
+   // Since this is embeded in a serialEvent ISR there has to be
+   // at least one character.  Because we deal with character reception
+   // asynchronously we need to set up a state machine to collect the
+   // characters to assemble the command.
       while(Serial.available())
       {
          // delay(20);                //DEBUG
@@ -77,25 +80,25 @@ ShieldCommunication::collectCommand() {
 
          // if cmdStatus is -1 then this is the prime directive which
          // flags how many more bytes are to follow.
-         if (commandStatus==-1) {
-            commandStatus = cc & 0x03; // mask count for additional bytes
-            command = cc;
+         if (_commandStatus==-1) {
+            _commandStatus = cc & 0x03; // mask count for additional bytes
+            _command = cc;
 //            Serial << "." << (char) cc << ".";   //DEBUG
             break;  // We are done here.
          }
 
-         switch( commandStatus ) {
+         switch( _commandStatus ) {
             case 0: // We should never get here. as we handled this above.
                      break;
             case 1: // One additional parameter
-                     param1=cc;
+                     _param1=cc;
                      // Serial << ">" << (char) cc << "<"; //DEBUG
-                     commandStatus--;
+                     _commandStatus--;
                      break;
             case 2: // Two additional parameters
-                     param2=cc;
+                     _param2=cc;
                      // Serial << "}" << (char) cc << "{"; //DEBUG
-                     commandStatus--;
+                     _commandStatus--;
                      break;
             case 3: // Nothing for this count currently.
                      badCommand(); // There are no 3 byte commands
@@ -111,7 +114,7 @@ void
 ShieldCommunication::commandSuccessful() {
    Serial << "!"; //(int8_t)0x06; //ASCII ACK
 //   Serial.write((int8_t)0x06);
-   commandStatus=-1;
+   _commandStatus=-1; // Ready to compile a new command.
 }
 
 /**
@@ -120,7 +123,7 @@ ShieldCommunication::commandSuccessful() {
 void
 ShieldCommunication::badCommand() {
     Serial << "?"; // (int8_t)0x15; //ASCII NAK
-    commandStatus=-1;
+    _commandStatus=-1; // Ready to compile a new command.
 }
 
 /**
@@ -129,20 +132,27 @@ ShieldCommunication::badCommand() {
 void
 ShieldCommunication::sendStatus(char state) {
    Serial << "Status: " << state;
-   Serial << " -cmd: " << command << " (0x" << _HEX(command) << ")";
-   switch ( command&0x03 ) {
-      case 2:  Serial << " p2: " << param2 << " (0x" << _HEX(param2) << ")" << " [0b" << _BIN(param2) << "]";
-      case 1:  Serial << " p1: " << param1 << " (0x" << _HEX(param1) << ")" << " [0b" << _BIN(param1) << "]";
+   Serial << " -cmd: " << _command << " (0x" << _HEX(_command) << ")";
+   switch ( _command&0x03 ) {
+      case 2:  Serial << " p2: " << _param2 << " (0x" << _HEX(_param2) << ")" << " [0b" << _BIN(_param2) << "]";
+      case 1:  Serial << " p1: " << _param1 << " (0x" << _HEX(_param1) << ")" << " [0b" << _BIN(_param1) << "]";
    }
    Serial << endl;
 }
 
+
+/**
+ * for completeness, not used currently
+ */
 int
 ShieldCommunication::getCommand() {
-   return (int)command;
-}
+   return (int)_command;
 
+}
+/**
+ * for completeness, not used currently
+ */
 int
 ShieldCommunication::getParameter() {
-   return (int)param1<<8 & (int)param2;
+   return (int)_param1<<8 & (int)_param2;
 }

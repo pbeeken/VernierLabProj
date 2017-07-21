@@ -17,9 +17,14 @@ class ShieldControl {
 public:
    ShieldControl();
 
+   byte getState() { return state; }
+   void setState( byte s ) { state = s; }
+
+
+
 private:
    byte state;  // state of engine  READY, RUNNING or WAITING
-   
+
 
 
 
