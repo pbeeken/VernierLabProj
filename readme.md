@@ -8,15 +8,14 @@ Sparkfun gave out a rich starting point for control of the Vernier Shield.  The 
 We start with the idea that the student should know something about what sensor they are connecting.  Even though there is an object for detection of a
 sensor based on its resistance (old school) and room for future expansion using I2C communication (new school) we shouldn't need this object as should recognize and know something about their equipment (an important idea in experimental design.)
 
-The two core operational objects VernierDigitalSensor and VernierAnalogSensor are designed to be 'non-blocking'.  I want the timing and triggering to be based on the evolution of the microsecond clock.  The programming of the arduino is designed around a iterating over a repeatedly called function called loop(). This means that we can set the conditions for triggering and data acquisition but still be able to interrupt the process without restarting the machine. I realize that this isn't always necessary as rebooting an Arduino is a 2 second process but I wanted to build re-entrant capability as this expands to setting the Vernier-Arduino system up as an acquisition extension of a data analysis tool like Jupyter mentioned above.
+The two core operational objects **VernierDigitalSensor** and **VernierAnalogSensor** are designed to be 'non-blocking'.  I want the timing and triggering to be based on the evolution of the microsecond clock and not simply sitting and waiting for something to happen.  The programming of the arduino is designed around a iterating over a repeatedly called function called loop(). This means that we can set conditions for triggering and data acquisition but still be able to interrupt the process without restarting the machine. I realize that this isn't always necessary as rebooting an Arduino is a 2 second process but I wanted to build re-entrant capability as this leads to setting the Vernier-Arduino system up as an acquisition extension of a data analysis tool like Jupyter mentioned above. One can always subclass these objects with blocking routines.
 
-Sparkfun saw fit to include two additional I/O abilities on their board: an LED and a Button for which there are some convenience tools created as well. Having these tools makes it simple to blink the LED 3 times as it boots, for example, and/or wait for a button press to start a measurement.  Other sensor specific objects are subclasses from the DigitalSensor and AnaogSensor objects outlined above.
+Sparkfun saw fit to include two additional I/O abilities on their board: an LED and a Button for which there are some convenience tools created as well. Having these tools makes it simple to blink the LED 3 times as it boots, for example, and/or wait for a button press to start a measurement.  Other sensor specific objects are subclasses from the _DigitalSensor_ and _AnaogSensor_ objects outlined above.
 
 Rough outline of the folder hierarchy.  All example folders contain usage
 examples and unit tests for the corresponding objects.
 
 ```
-
 |--lib/
 |  |--VernierAnalogSensor/  # Superclass of all analog sensors [VAS]
 |  |  |--examples/
@@ -67,18 +66,15 @@ examples and unit tests for the corresponding objects.
 |  |  |--examples/
 |  |  |- ShieldCommunication.cpp
 |  |  |- ShieldCommunication.h
-
 |  |
 |  |- readme.md --> THIS FILE
 |
 |--src/  # location where the main source is placed.
    |- main.cpp # doesn't need to be named this.
 ```
----
 
 Then in `src/main.cpp` you should use:
 ```C++
-
 #include <Arduino.h>
 #include <Streaming.h>
 #include <VernierBlinker.h> // e.g.
