@@ -1,94 +1,109 @@
-VernierControl
-==============
+# SparkFun Vernier-Arduino Shield Library
+=========================================
 
-This is a collection of libraries to facilitate data acquisition by an Arduino
-equipped with a Vernier Shield.  Each library file is specific to a particular
-device or circumstance. The ultimate destination for these routines is to supervise
-the Arduino with a python library that can be imported into a Jupyter notebook.
+This directory is intended for libraries of objects to control the SparkFun Vernier-Arduino Shield.  I have modified and adjusted online code to build a
+framework that will work with PlatformIO embedded in Atom that will compile them to build Arduino Projects.  One goal is to provide a general communication toolkit that would allow students to use a high level languate like python in a data analysis framework like Jupyter, Mathematica or wxMaxima to gather data directly from Vernier sensors without having to rely on proprietary software.  The philosophy of this way of doing labs is to give students a real sense of how engineers and scientists have to think about how to automate the process of getting data rather than provide magic boxes that miraculously proved finished values.
 
-Structure of Library Routines
------------------------------
-There are a number of libraries for control of the Vernier Shield.  The design
-of this system is predicated on the idea that the student knows what sensor
-they are connecting.  So even though there is an object for detection of a
-sensor based on its resistance (old school) and room for future expansion using
-I2C communication (new school) we shouldn't need this as the idea is to have
-the students put the components together according to their specific circumstances.
+Sparkfun provded a rich starting point for control of the Vernier Shield.  The design point is to compartmentalize the operations so that a reasonably knowledgeable person can combine these objects into a sequence that will provide data for an experiment which can later be analyzed by other software tools.
 
-_Directory Structure_
-The source code of each library should be placed in separate directory, like
-"lib/private_lib/[here are source files]".
-```
-|--lib
-|  |--VernierAnalogSensor  # Superclass of all analog sensors
-|  |  |--examples
-|  |  |  |- VernierTestAnalog.cpp
+We start with the idea that the student should know something about what sensor they are connecting.  Even though there is an object for detection of a
+sensor based on its resistance (old school) and room for future expansion using I2C communication (new school) we shouldn't need this object as should recognize and know something about their equipment (an important idea in experimental design.)
+
+The two core operational objects VernierDigitalSensor and VernierAnalogSensor are designed to be 'non-blocking'.  I want the timing and triggering to be based on the evolution of the microsecond clock.  The programming of the arduino is designed around a iterating over a repeatedly called function called loop(). This means that we can set the conditions for triggering and data acquisition but still be able to interrupt the process without restarting the machine. I realize that this isn't always necessary as rebooting an Arduino is a 2 second process but I wanted to build re-entrant capability as this expands to setting the Vernier-Arduino system up as an acquisition extension of a data analysis tool like Jupyter mentioned above.
+
+Sparkfun saw fit to include two additional I/O abilities on their board: an LED and a Button for which there are some convenience tools created as well. Having these tools makes it simple to blink the LED 3 times as it boots, for example, and/or wait for a button press to start a measurement.  Other sensor specific objects are subclasses from the DigitalSensor and AnaogSensor objects outlined above.
+---
+`
+Rough outline of the folder hierarchy.  All example folders contain usage
+examples and unit tests for the corresponding objects.
+|--lib/
+|  |--VernierAnalogSensor/  # Superclass of all analog sensors [VAS]
+|  |  |--examples/
 |  |  |- VernierAnalogSensor.cpp
 |  |  |- VernierAnalogSensor.h
-|  |          
-|  |--VernierThermistor   # Subclass of AnalogSensor for Thermistors
-|  |  |--examples
-|  |  |  |- VernierTempTest.cpp
-|  |  |- VernierThermistor.cpp
-|  |  |- VernierThermistor.h
-|  |           
-|  |--Vernier1DAccelerometer  # Subclass of VernierAnalogSensor tailored for 1D Accelerometer
-|  |  |--examples
-|  |  |  |- VernierTest1DAcc.cpp
-|  |  |- Vernier1DAccelerometer.cpp
-|  |  |- Vernier1DAccelerometer.h
-|  |           
-|  |--VernierDiffVoltSensor  # Subclass of VernierAnalogSensor tailored for Differential Voltage
-|  |  |--examples
-|  |  |  |- VernierTestDiffVolt.cpp
-|  |  |- VernierDiffVoltage.cpp
-|  |  |- VernierDiffVoltage.h
-|  |           
-|  |--VernierVoltage  # Subclass of VernierAnalogSensor tailored for Voltage
-|  |  |--examples
-|  |  |  |- VernierTestVolt.cpp
-|  |  |- VernierVoltage.cpp
-|  |  |- VernierVoltage.h
-|  |           
-|  |--VernierBlinker  # Class that controls the light on the shield for feedback
-|  |  |--examples
-|  |  |  |- VernierTestBlink.cpp
+|  |
+|  |--VernierDigitalSensor/  # Superclass of all digital sensors [VDS]
+|  |  |--examples/
+|  |  |- VernierAnalogSensor.cpp
+|  |  |- VernierAnalogSensor.h
+|  |
+|  |--VernierBlinker/ # Class that controls the LED on the shield
+|  |  |--examples/
 |  |  |- VernierBlinker.cpp
 |  |  |- VernierBlinker.h
-|  |           
-|  |--VernierButton  # Class that helps manage input from the button on the shield
-|  |  |--examples
-|  |  |  |- VernierTestButton.cpp
+|  |
+|  |--VernierButton/ # Class that manages the button on the shield
+|  |  |--examples/
 |  |  |- VernierButton.cpp
 |  |  |- VernierButton.h
-|  |           
-|  |--VernierDetect  # Class that helps detect the type of analog sensor
-|  |  |--examples
+|  |
+|  |--VernierDetect/ # Class that helps detect information about analog sensor
+|  |  |--examples/
 |  |  |- VernierDetect.cpp
 |  |  |- VernierDetect.h
-|  |           
-|- platformio.ini
-|--src
-   |- main.cpp
-```
-_Testing and execution_
+|  |
+|  |--VernierThermistor/ # subclass of VAS specific to Thermistors
+|  |  |--examples/
+|  |  |- VernierThermistor.cpp
+|  |  |- VernierThermistor.h
+|  |
+|  |--Vernier1DAccelerometer/ # subclass of VAS specific to 1D accelerometers
+|  |  |--examples/
+|  |  |- Vernier1DAccelerometer.cpp
+|  |  |- Vernier1DAccelerometer.h
+|  |
+|  |--VernierDiffVoltSensor/ # subclass of VAS talored to diff. volt sensor.
+|  |  |--examples/
+|  |  |- VernierDiffVoltage.cpp
+|  |  |- VernierDiffVoltage.h
+|  |
+|  |--VernierVoltage/ # subclass of VAS talored to basic volt probe.
+|  |  |--examples/
+|  |  |- VernierVoltage.cpp
+|  |  |- VernierVoltage.h
+|  |
+|  |--ShieldCommunication/ # class that tries to implement a basic communications protocol.
+|  |  |--examples/
+|  |  |- ShieldCommunication.cpp
+|  |  |- ShieldCommunication.h
+
+|  |
+|  |- readme.md --> THIS FILE
+|
+|--src/  # location where the main source is placed.
+   |- main.cpp # doesn't need to be named this.
+`
+
 Then in `src/main.cpp` you should use:
+---
+`
+#include <Arduino.h>
+#include <Streaming.h>
+#include <VernierBlinker.h> // e.g.
+#include <VernierVoltage.h> // e.g.
 
-```c++
-#include <Streaming>
-#include <VernierBlinker.h>
-#include <VernierVoltage.h>
+// rest H/C/CPP code
+void setup() {
+   // setup the conditions, communications and other details.
+}
 
-  // rest H/C/CPP code
-setup() {}
-loop()  {}
-```
+void loop()  {
+   // called repeatedly as fast as the little Arduino can fly
+}
+
+// Optional:
+void serialEvent() {
+   // when the serial-in buffer gets a character, an interrupt flags
+   // that a character was received. This stub override is where you
+   // can take action.
+   // N.B. this is not run during the interrupt but just before loop()
+   // is called in the master event loop outside the scope of this code.
+}
+
+`
+---
 PlatformIO will find your libraries automatically, configure preprocessor's
 include paths and build them.
 
 More information about PlatformIO Library Dependency Finder
 - http://docs.platformio.org/en/stable/librarymanager/ldf.html
-
-Organization of Commands
-------------------------
-
