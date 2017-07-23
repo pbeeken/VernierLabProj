@@ -77,7 +77,7 @@ examples and unit tests for the corresponding objects.
 ---
 
 Then in `src/main.cpp` you should use:
-```
+```C++
 
 #include <Arduino.h>
 #include <Streaming.h>
