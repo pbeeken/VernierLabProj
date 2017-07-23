@@ -12,8 +12,7 @@ The two core operational objects **VernierDigitalSensor** and **VernierAnalogSen
 
 Sparkfun saw fit to include two additional I/O abilities on their board: an LED and a Button for which there are some convenience tools created as well. Having these tools makes it simple to blink the LED 3 times as it boots, for example, and/or wait for a button press to start a measurement.  Other sensor specific objects are subclasses from the _DigitalSensor_ and _AnaogSensor_ objects outlined above.
 
-Rough outline of the folder hierarchy.  All example folders contain usage
-examples and unit tests for the corresponding objects.
+Rough outline of the folder hierarchy.  All **example/** subfolders contain usage examples that serve as a kind of unit test for the corresponding objects.
 
 ```
 |--lib/
