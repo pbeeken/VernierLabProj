@@ -4,11 +4,12 @@ VernierVoltage
 	input directly.  The full scale is ±10V and the calibration
 	converts to that value.
 
-Tested and developed in Platformio 3.1.0
-PBeeken ByramHills High School 9.1.2016
+   Tested and developed in Platformio 3.1.0
+   PBeeken ByramHills High School 9.1.2016
 
+   Modified to fit VernierAnalogSensor refactoring
+   PBeeken ByramHills High School 7.23.2017
 
-17 Oct 2016- P. Beeken, Byram Hils High School
 ****************************************************************/
 #ifndef VernierVoltage_h
 #define VernierVoltage_h

@@ -4,11 +4,12 @@ VernierButton
 	SparkFun Vernier Shield.  The button can be used for a
 	variety of user interface controls.
 
-Tested and developed in Platformio 3.1.0
-PBeeken ByramHills High School 9.1.2016
+   Tested and developed in Platformio 3.1.0
+   PBeeken ByramHills High School 9.1.2016
 
+   Modified to fit VernierAnalogSensor refactoring
+   PBeeken ByramHills High School 7.23.2017
 
-17 Oct 2016- P. Beeken, Byram Hils High School
 ****************************************************************/
 #include <Arduino.h>
 #include <VernierThermistor.h>
@@ -21,8 +22,8 @@ PBeeken ByramHills High School 9.1.2016
 VernierThermistor::VernierThermistor( int channel ) : VernierAnalogSensor( channel )
 {
   static const char sUnits[] = "°C";
-  _slope = 1.0;
-  _intcpt = 0.0;
+  _slope = 1.0;  // we don't really care because what we need to override is the
+  _intcpt = 0.0; // whole calibration functon since the conversion is non-linear
   _units = sUnits;
 }
 
