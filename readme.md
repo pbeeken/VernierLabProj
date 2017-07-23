@@ -15,93 +15,93 @@ Sparkfun saw fit to include two additional I/O abilities on their board: an LED 
 Rough outline of the folder hierarchy.  All example folders contain usage
 examples and unit tests for the corresponding objects.
 
----
+```
 
-`|--lib/`
-`|  |--VernierAnalogSensor/  # Superclass of all analog sensors [VAS]`
-`|  |  |--examples/`
-`|  |  |- VernierAnalogSensor.cpp`
-`|  |  |- VernierAnalogSensor.h`
-`|  |`
-`|  |--VernierDigitalSensor/  # Superclass of all digital sensors [VDS]`
-`|  |  |--examples/`
-`|  |  |- VernierAnalogSensor.cpp`
-`|  |  |- VernierAnalogSensor.h`
-`|  |`
-`|  |--VernierBlinker/ # Class that controls the LED on the shield`
-`|  |  |--examples/`
-`|  |  |- VernierBlinker.cpp`
-`|  |  |- VernierBlinker.h`
-`|  |`
-`|  |--VernierButton/ # Class that manages the button on the shield`
-`|  |  |--examples/`
-`|  |  |- VernierButton.cpp`
-`|  |  |- VernierButton.h`
-`|  |`
-`|  |--VernierDetect/ # Class that helps detect information about analog sensor`
-`|  |  |--examples/`
-`|  |  |- VernierDetect.cpp`
-`|  |  |- VernierDetect.h`
-`|  |`
-`|  |--VernierThermistor/ # subclass of VAS specific to Thermistors`
-`|  |  |--examples/`
-`|  |  |- VernierThermistor.cpp`
-`|  |  |- VernierThermistor.h`
-`|  |`
-`|  |--Vernier1DAccelerometer/ # subclass of VAS specific to 1D accelerometers`
-`|  |  |--examples/`
-`|  |  |- Vernier1DAccelerometer.cpp`
-`|  |  |- Vernier1DAccelerometer.h`
-`|  |`
-`|  |--VernierDiffVoltSensor/ # subclass of VAS talored to diff. volt sensor.`
-`|  |  |--examples/`
-`|  |  |- VernierDiffVoltage.cpp`
-`|  |  |- VernierDiffVoltage.h`
-`|  |`
-`|  |--VernierVoltage/ # subclass of VAS talored to basic volt probe.`
-`|  |  |--examples/`
-`|  |  |- VernierVoltage.cpp`
-`|  |  |- VernierVoltage.h`
-`|  |`
-`|  |--ShieldCommunication/ # class that tries to implement a basic communications protocol.`
-`|  |  |--examples/`
-`|  |  |- ShieldCommunication.cpp`
-`|  |  |- ShieldCommunication.h`
+|--lib/
+|  |--VernierAnalogSensor/  # Superclass of all analog sensors [VAS]
+|  |  |--examples/
+|  |  |- VernierAnalogSensor.cpp
+|  |  |- VernierAnalogSensor.h
+|  |
+|  |--VernierDigitalSensor/  # Superclass of all digital sensors [VDS]
+|  |  |--examples/
+|  |  |- VernierAnalogSensor.cpp
+|  |  |- VernierAnalogSensor.h
+|  |
+|  |--VernierBlinker/ # Class that controls the LED on the shield
+|  |  |--examples/
+|  |  |- VernierBlinker.cpp
+|  |  |- VernierBlinker.h
+|  |
+|  |--VernierButton/ # Class that manages the button on the shield
+|  |  |--examples/
+|  |  |- VernierButton.cpp
+|  |  |- VernierButton.h
+|  |
+|  |--VernierDetect/ # Class that helps detect information about analog sensor
+|  |  |--examples/
+|  |  |- VernierDetect.cpp
+|  |  |- VernierDetect.h
+|  |
+|  |--VernierThermistor/ # subclass of VAS specific to Thermistors
+|  |  |--examples/
+|  |  |- VernierThermistor.cpp
+|  |  |- VernierThermistor.h
+|  |
+|  |--Vernier1DAccelerometer/ # subclass of VAS specific to 1D accelerometers
+|  |  |--examples/
+|  |  |- Vernier1DAccelerometer.cpp
+|  |  |- Vernier1DAccelerometer.h
+|  |
+|  |--VernierDiffVoltSensor/ # subclass of VAS talored to diff. volt sensor.
+|  |  |--examples/
+|  |  |- VernierDiffVoltage.cpp
+|  |  |- VernierDiffVoltage.h
+|  |
+|  |--VernierVoltage/ # subclass of VAS talored to basic volt probe.
+|  |  |--examples/
+|  |  |- VernierVoltage.cpp
+|  |  |- VernierVoltage.h
+|  |
+|  |--ShieldCommunication/ # class that tries to implement a basic communications protocol.
+|  |  |--examples/
+|  |  |- ShieldCommunication.cpp
+|  |  |- ShieldCommunication.h
 
-`|  |`
-`|  |- readme.md --> THIS FILE`
-`|`
-`|--src/  # location where the main source is placed.`
-`   |- main.cpp # doesn't need to be named this.`
-
+|  |
+|  |- readme.md --> THIS FILE
+|
+|--src/  # location where the main source is placed.
+   |- main.cpp # doesn't need to be named this.
+```
 ---
 
 Then in `src/main.cpp` you should use:
----
+```
 
-`#include <Arduino.h>`
-`#include <Streaming.h>`
-`#include <VernierBlinker.h> // e.g.`
-`#include <VernierVoltage.h> // e.g.`
+#include <Arduino.h>
+#include <Streaming.h>
+#include <VernierBlinker.h> // e.g.
+#include <VernierVoltage.h> // e.g.
 
-`// rest H/C/CPP code`
-`void setup() {`
-`   // setup the conditions, communications and other details.`
-`}`
+// rest H/C/CPP code
+void setup() {
+   // setup the conditions, communications and other details.
+}
 
-`void loop()  {`
-`   // called repeatedly as fast as the little Arduino can fly`
-`}`
+void loop()  {
+   // called repeatedly as fast as the little Arduino can fly
+}
 
-`// Optional:`
-`void serialEvent() {`
-`   // when the serial-in buffer gets a character, an interrupt flags`
-`   // that a character was received. This stub override is where you`
-`   // can take action.`
-`   // N.B. this is not run during the interrupt but just before loop()`
-`   // is called in the master event loop outside the scope of this code.`
-`}`
-
+// Optional:
+void serialEvent() {
+   // when the serial-in buffer gets a character, an interrupt flags
+   // that a character was received. This stub override is where you
+   // can take action.
+   // N.B. this is not run during the interrupt but just before loop()
+   // is called in the master event loop outside the scope of this code.
+}
+```
 ---
 PlatformIO will find your libraries automatically, configure preprocessor's
 include paths and build them.
