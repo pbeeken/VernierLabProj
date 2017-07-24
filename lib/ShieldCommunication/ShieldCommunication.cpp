@@ -20,7 +20,7 @@
  * Initialize object to receive
  */
 ShieldCommunication::ShieldCommunication() {
-   _commandStatus = -1;
+   _paramCount = -1;
    // Command is complete, we are ready for another command
 }
 
@@ -29,7 +29,7 @@ ShieldCommunication::ShieldCommunication() {
  */
 bool
 ShieldCommunication::isCommandBuilding() {
-   return _commandStatus>0;
+   return _paramCount>0;
 }
 
 /**
@@ -37,7 +37,7 @@ ShieldCommunication::isCommandBuilding() {
  */
 bool
 ShieldCommunication::isCommandComplete() {
-   return _commandStatus==0;
+   return _paramCount==0;
 }
 
 /**
@@ -45,14 +45,16 @@ ShieldCommunication::isCommandComplete() {
  */
 bool
 ShieldCommunication::isReadyToBuild() {
-   return _commandStatus!=0;
+   return _paramCount!=0;
 }
 
 
 /** CollectCommand
- *  This routine is intended for the serialEvent ISR where this object
- *  waits for and collects the commands.  Commands consist of the following
- *  elements which, in turn, control how this parser works:
+ *  This routine is intended for the serialEvent stub where this object
+ *  waits for and collects the 'command.'  Commands consist of the
+ *  instuction predicate and parameters. With ASCII commands we can use
+ *  terminals and limited inputs to control flow. With binary this isn't
+ *  as easy.
  * OLD SCHOOL
  *  Commands start with 3 letters white space and a set of optional numbers
  *  terminated by a semicolon. Spaces, carriage returns,
@@ -60,8 +62,9 @@ ShieldCommunication::isReadyToBuild() {
  * NEW PATTERN
  *  Command pattern is not simple as some require additional information.
  *  problem with binary communications is that it is hard to know when a
- *  communication is done except by counting characters so we need a
- *  timeout.
+ *  communication is done except by counting characters.  Some command
+ *  predicates do not have parameters while others do and the parameters (in
+ *  binary might look like commands so we have to be careful.)
  */
 void
 ShieldCommunication::collectCommand() {
@@ -78,27 +81,27 @@ ShieldCommunication::collectCommand() {
          // read a character
          char cc = (char)Serial.read();
 
-         // if cmdStatus is -1 then this is the prime directive which
-         // flags how many more bytes are to follow.
-         if (_commandStatus==-1) {
-            _commandStatus = cc & 0x03; // mask count for additional bytes
-            _command = cc;
+         // if cmdStatus is -1 then this is the predicate which
+         // also tells us how many more bytes are to follow.
+         if (_paramCount==-1) {
+            _paramCount = cc & 0x03; // mask count for additional bytes
+            _predicate = cc;
 //            Serial << "." << (char) cc << ".";   //DEBUG
             break;  // We are done here.
          }
 
-         switch( _commandStatus ) {
-            case 0: // We should never get here. as we handled this above.
+         switch( _paramCount ) {
+            case 0: //No additional parameters. (we don't ever come here)
                      break;
             case 1: // One additional parameter
                      _param1=cc;
                      // Serial << ">" << (char) cc << "<"; //DEBUG
-                     _commandStatus--;
+                     _paramCount--;
                      break;
             case 2: // Two additional parameters
                      _param2=cc;
                      // Serial << "}" << (char) cc << "{"; //DEBUG
-                     _commandStatus--;
+                     _paramCount--;
                      break;
             case 3: // Nothing for this count currently.
                      badCommand(); // There are no 3 byte commands
@@ -112,9 +115,9 @@ ShieldCommunication::collectCommand() {
  */
 void
 ShieldCommunication::commandSuccessful() {
-   Serial << "!"; //(int8_t)0x06; //ASCII ACK
-//   Serial.write((int8_t)0x06);
-   _commandStatus=-1; // Ready to compile a new command.
+   Serial << "!"; //(char)0x06; //ASCII ACK
+//   Serial.write((char)0x06);
+   _paramCount=-1; // Ready to compile a new command.
 }
 
 /**
@@ -122,8 +125,8 @@ ShieldCommunication::commandSuccessful() {
  */
 void
 ShieldCommunication::badCommand() {
-    Serial << "?"; // (int8_t)0x15; //ASCII NAK
-    _commandStatus=-1; // Ready to compile a new command.
+    Serial << "?"; // (char)0x15; //ASCII NAK
+    _paramCount=-1; // Ready to compile a new command.
 }
 
 /**
@@ -132,27 +135,10 @@ ShieldCommunication::badCommand() {
 void
 ShieldCommunication::sendStatus(char state) {
    Serial << "Status: " << state;
-   Serial << " -cmd: " << _command << " (0x" << _HEX(_command) << ")";
-   switch ( _command&0x03 ) {
-      case 2:  Serial << " p2: " << _param2 << " (0x" << _HEX(_param2) << ")" << " [0b" << _BIN(_param2) << "]";
-      case 1:  Serial << " p1: " << _param1 << " (0x" << _HEX(_param1) << ")" << " [0b" << _BIN(_param1) << "]";
+   Serial << " -cmd: " << _predicate << " (0x" << _HEX(_predicate) << ")";
+   switch ( _predicate&0x03 ) {
+      case 2:  Serial << " p2: " << _DEC(_param2) << ", 0x" << _HEX(_param2) << ", 0b" << _BIN(_param2);
+      case 1:  Serial << " p1: " << _DEC(_param1) << ", 0x" << _HEX(_param1) << ", 0b" << _BIN(_param1);
    }
    Serial << endl;
-}
-
-
-/**
- * for completeness, not used currently
- */
-int
-ShieldCommunication::getCommand() {
-   return (int)_command;
-
-}
-/**
- * for completeness, not used currently
- */
-int
-ShieldCommunication::getParameter() {
-   return (int)_param1<<8 & (int)_param2;
 }

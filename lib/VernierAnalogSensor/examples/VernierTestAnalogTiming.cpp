@@ -11,7 +11,7 @@ bool IamDone();
 
 VernierBlinker theLED;
 VernierButton  theButton;
-VernierAnalogSensor aGate( VernierAnalogSensor::BTA01_10V );
+VernierAnalogSensor aGate( VernierAnalogSensor::BTA01_5V );
 
 // Setup the conditions
 void setup() {
@@ -29,7 +29,7 @@ void setup() {
   theLED.turnOff();
   aGate.initTimer(50000);  // 20 Hz
 
-  Serial << "Go . . ." << endl;
+  Serial << "Go..." << endl;
 
 }
 
