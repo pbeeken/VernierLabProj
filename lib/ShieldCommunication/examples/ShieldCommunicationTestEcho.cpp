@@ -69,11 +69,11 @@ void loop() {
                         cmd.sendStatus( 'H' );
 			             break;
 
-       case IMMEDA1:  cmd.commandSuccessful();
+       case IMMEDA105:  cmd.commandSuccessful();
                         Serial << "IMMEDA1" <<endl;
                         cmd.sendStatus( 'H' );
 			             break;
-       case IMMEDA2:  cmd.commandSuccessful();
+       case IMMEDA205:  cmd.commandSuccessful();
                         Serial << "IMMEDA2" <<endl;
                         cmd.sendStatus( 'H' );
 			             break;

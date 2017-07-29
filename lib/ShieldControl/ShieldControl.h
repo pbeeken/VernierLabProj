@@ -12,18 +12,26 @@
 #define ShieldCoontrol_h
 #include <Arduino.h>
 
+enum STATES {
+    CLEAR_ALL = 'C',
+    READY_STATE = 'R',
+    WAITING_STATE ='W',
+    GOING_STATE = 'G',
+};
+
 class ShieldControl {
 
 public:
    ShieldControl();
 
-   byte getState() { return state; }
-   void setState( byte s ) { state = s; }
+   char getState() { return _state; }
+   void setState( char s ) { _state = s; }
 
 
+   void sendStatus();
 
 private:
-   byte state;  // state of engine  READY, RUNNING or WAITING
+   char _state;  // state of engine  READY, RUNNING or WAITING
 
 
 

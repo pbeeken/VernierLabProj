@@ -142,3 +142,34 @@ ShieldCommunication::sendStatus(char state) {
    }
    Serial << endl;
 }
+
+/**
+ * Format and send current state
+ */
+void
+ShieldCommunication::sendStatus(const char* report) {
+   Serial << report; // send a string that is formatted by someone else.
+   Serial << endl;
+}
+
+/**
+ * Send data out through the serial port in a binary fashion
+ * a data blob in this environment is composed of two parts:
+ * the unsigned long time value and up to a 10 bit value that
+ * represents the value from the port.  The uppermost nibble
+ * of the value part of the blob is reserved for a flag that
+ * identifies the channel the data came in with
+ */
+void
+ShieldCommunication::sendDataBlob(unsigned long time, unsigned int value, char channel) {
+   uint16_t highWord = time >> 16;
+   uint16_t lowWord = time & 0xFFFF;
+   // write bigendian 4 consecutive bytes
+   Serial.write( highByte(highWord) );
+   Serial.write( lowByte(highWord) );
+   Serial.write( highByte(lowWord) );
+   Serial.write( lowByte(lowWord) );
+   // write bigendian 2 consecutive byte (with a twist)
+   Serial.write( highByte(value) + (channel) );
+   Serial.write( lowByte(value) );
+}

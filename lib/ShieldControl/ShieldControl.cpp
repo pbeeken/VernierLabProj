@@ -10,14 +10,16 @@
 ****************************************************************/
 
 #include <ShieldControl.h>
+#include <Streaming.h>
 
-enum state {
-   READY='H',
-   WAITING='W',
-   GOING='G',
-};
 
 
 ShieldControl::ShieldControl() {
-   state = READY;
+   setState( READY_STATE );
+}
+
+void
+ShieldControl::sendStatus() {
+   Serial << "State: " << _state;
+
 }
