@@ -4,6 +4,8 @@
 *  port is managed outside this object through the establishment of a baud rate
 *  and .begin notification.  After that this object is meant to do all the work.
 *
+*  The commands structure and reasoning is outlined in a separate document.
+*
 *  Tested and developed in Platformio 3.1.0
 *  PBeeken ByramHills High School 9.1.2016
 *
@@ -20,8 +22,10 @@ enum CMDS {
    HALT = 0x2C, GO   = 0x28, BTN  = 0x24,
 
    // Mode changine commands (what are we reading...)
-   DIGMDE1 = 0x31, DIGMDE2 = 0x35,
-   ANAMDE1 = 0x42,ANAMDE2 = 0x46, ANAMDEB = 0x4A,
+   DIGMDE1 = 0x31, DIGMDE2 = 0x35,  // two digital ports
+   ANAMDE15 = 0x42,ANAMDE25 = 0x46, // 5 volt inputs
+   ANAMDE110 = 0x4A,ANAMDE210=0x4E,  // 10 volt inputs
+
    // (... start and stop conditions
    TRIGMODE = 0x52, STOPMODE = 0x56,
 

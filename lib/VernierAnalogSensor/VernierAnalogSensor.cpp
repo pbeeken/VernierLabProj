@@ -64,13 +64,28 @@ VernierAnalogSensor::pollPort() {
 
 /**
  * set sample time.  A small accident revealed the fastest time the Arduino
- * can sample is 1528us (~1.5ms) per call.
+ * can sample is 1528us (~1.5ms) per call. The input is a flag to set the
+ * timer for specific intervals
  */
 void
-VernierAnalogSensor::initTimer( unsigned long delTimeMS ) {
-   _trigTime = delTimeMS*1000;
-   _start_us = micros();
-   _nextRead = micros()+_trigTime;
+VernierAnalogSensor::setInterval( char intFlag ) {
+   switch (intFlag) {
+      case S_30s:   _trigTime = 30000*1000L; break;
+      case S_10s:   _trigTime = 10000*1000L; break;
+      case S_5s:    _trigTime = 5000*1000L; break;
+      case S_2s:    _trigTime = 2000*1000L; break;
+      case S_1Hz:   _trigTime = 1000*1000L; break;  // microseconds
+      case S_5Hz:   _trigTime = 200*1000L; break;
+      case S_10Hz:  _trigTime = 100*1000L; break;
+      case S_20Hz:  _trigTime = 50*1000L; break;
+      case S_40Hz:  _trigTime = 25*1000L; break;
+      case S_50Hz:  _trigTime = 20*1000L; break;
+      case S_100Hz: _trigTime = 10*1000L; break;
+      case S_200Hz: _trigTime = 5*1000L; break;
+      case S_500Hz: _trigTime = 2*1000L; break;
+      case FASTEST: _trigTime = 1L; break; // 1 msec, practically: 1.5 msec per sample
+   }
+   begin();
 }
 
 /** applyCalibration() is a virtual function which, by default,
@@ -104,7 +119,8 @@ VernierAnalogSensor::applyCalibration( int adcValue ) {
  */
 void
 VernierAnalogSensor::begin() {
-  _start_us = micros();
   _rawReading = 0;
+  _start_us = micros();
   _nextRead = micros()+_trigTime;
+  _count = 0L;
 }

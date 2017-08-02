@@ -13,10 +13,10 @@
 #include <Arduino.h>
 
 enum STATES {
-    CLEAR_ALL = 'C',
-    READY_STATE = 'R',
-    WAITING_STATE ='W',
-    GOING_STATE = 'G',
+    CLEAR_ALL = 'C', // System is reseting (rare)
+    READY_STATE = 'R', // Armed: waiting for event to start taking data
+    WAITING_STATE ='W', // Just listening for commands
+    RUNNING_STATE = 'G', // Actively gathering data
 };
 
 class ShieldControl {
@@ -27,12 +27,14 @@ public:
    char getState() { return _state; }
    void setState( char s ) { _state = s; }
 
+   void trigMode( char tm ) { _trigMode = tm; }
+
 
    void sendStatus();
 
 private:
    char _state;  // state of engine  READY, RUNNING or WAITING
-
+   char _trigMode;
 
 
 

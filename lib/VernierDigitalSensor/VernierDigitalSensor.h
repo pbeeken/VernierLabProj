@@ -48,12 +48,10 @@ VernierDigitalInput
 
 // Digital trigger conditions
 enum TRIGSTATES {
-  UNDETERMINED,
-  LOW2HIGH,
-  HIGH2LOW,
-  ANY,
-  RISING_T,
-  FALLING_T,
+  UNDETERMINED=0x00,
+  LOW2HIGH=0x01,  HIGH2LOW=0x02,
+  ANY=0x03,
+  RISING_T=0x04,  FALLING_T=0x05,
 };
 
 class VernierDigitalSensor

@@ -38,20 +38,33 @@ TODO: Provide an identification object to determine calibrations based on I2C
 #define VernierAnalogSensor_h
 #include <VernierButton.h>
 
-
+// Sample Rates 32 values available (bottom 5 bits of first parameter)
 enum SAMPLERATES {
    BUTTONPRESS = 0,
-   S_1Hz = 1000,
-   S_5Hz = 200,
-   S_10Hz = 100, // 100 msec/sample
-   S_20Hz = 50,
-   S_40Hz = 25,
-   S_50Hz = 20,
-   S_100Hz = 10,
-   S_200Hz = 5,
+   S_30s   = 15,
+   S_10s   = 14,
+   S_5s    = 13,
+   S_2s    = 12,
+   S_1Hz   = 11,
+   S_5Hz   = 10,
+   S_10Hz  = 9, // 100 msec/sample
+   S_20Hz  = 8,
+   S_40Hz  = 7,
+   S_50Hz  = 6,
+   S_100Hz = 5,
+   S_200Hz = 4,
+   S_500Hz = 3,
+   S_1kHz  = 2,
    FASTEST = 1, // 1 msec, practically: 1.5 msec per sample
 };
 
+// Conditions for starting measurement cycle
+enum STARTCONDITIONS {
+   BUTTONWAIT = 0x80,
+   RISE_ABOVE  = 0xC0,
+   FALL_BELOW  = 0x40,
+   IMMEDIATE   = 0x00,
+};
 
 /** Constructor
  *    setup channels and initialize values.
@@ -67,7 +80,7 @@ class VernierAnalogSensor
       int readPort();
 
       // set the sample time for values during polling
-      void initTimer( unsigned long delTimeMS=S_10Hz );
+      void setInterval( char intFlag=S_10Hz );
 
       // intended to be placed in the loop() stub to periodically check the
       // state of the analog channel. It will react to the set of the trigger
@@ -75,7 +88,7 @@ class VernierAnalogSensor
       bool pollPort();
 
       // reset the timers and counters
-      void          begin();       // start the clock
+      void begin();       // start the clock
 
       // Getters for data
       const char*   getUnits() { return _units; } // return sensor's units
@@ -109,7 +122,8 @@ class VernierAnalogSensor
     unsigned long _trigTime;     // how long to wait between readings 0 is button push
     unsigned long _nextRead;     // time to take next reading
     unsigned long _start_us;     // marker for start sequence
-
+    unsigned long _count;        // count of values
+    bool          _trigCond;
 };
 
 #endif

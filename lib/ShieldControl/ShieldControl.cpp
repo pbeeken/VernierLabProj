@@ -15,7 +15,7 @@
 
 
 ShieldControl::ShieldControl() {
-   setState( READY_STATE );
+   setState( CLEAR_ALL ); // booting
 }
 
 void

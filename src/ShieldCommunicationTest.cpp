@@ -21,18 +21,24 @@ VernierAnalogSensor ana110( VernierAnalogSensor::BTA01_10V);
 VernierAnalogSensor ana205( VernierAnalogSensor::BTA02_5V);
 VernierAnalogSensor ana210( VernierAnalogSensor::BTA02_10V);
 
+
+
+// This will be replaced by the function for taking data when the time
+// comes.
+bool (*pollDataPort)();
+int trigMode = 0;
+int dataCountLimit = 100;
+
 /**
  * Setup the Arduino before we enter the endless loop
  */
 void setup() {
   Serial.begin(115200);
-
+  pollDataPort = 0L;  // no data taking
   theLED.blinkFor(2);
 }
 
 const char msg[] = "Hello World";
-int trigMode = 0;
-int dataCountLimit = 100;
 
 
 
@@ -41,6 +47,13 @@ int dataCountLimit = 100;
  */
 void loop() {
 
+  // if this pointer is <>0 then we can safely assume it is
+  // meant to gather data.
+  if ( pollDataPort ) {
+     pollDataPort();
+  }
+
+  // We enter this piece if a command is complete.
   if (comm.isCommandComplete()) {
      // We are ready to process a command
      switch( comm.getCommand() ) {
@@ -51,31 +64,29 @@ void loop() {
 
        // Setup Commands
        case TRIGMODE: comm.commandSuccessful();
+                      // we get two values from this command
                       Serial << "TRIGMODE" <<endl;
                       comm.sendStatus( 'S' );
                       break;
 
        // Initiate data taking modes.
        case DIGMDE1:  comm.commandSuccessful();
-                        Serial << "DIGMDE1" <<endl;
-                        comm.sendStatus( 'H' );
+                      dig1.initTrigger(comm.getParamOne());
 			             break;
        case DIGMDE2:  comm.commandSuccessful();
-                        Serial << "DIGMDE2" <<endl;
-                        comm.sendStatus( 'H' );
+                      dig2.initTrigger(comm.getParamOne());
 			             break;
-
-       case ANAMDE1:  comm.commandSuccessful();
-                        Serial << "ANAMDE1" <<endl;
-                        comm.sendStatus( 'H' );
+       case ANAMDE15:  comm.commandSuccessful();
+                      ana105.setInterval(0x0F & comm.getParamOne());
 			             break;
-       case ANAMDE2:  comm.commandSuccessful();
-                        Serial << "ANAMDE2" <<endl;
-                        comm.sendStatus( 'H' );
+       case ANAMDE25:  comm.commandSuccessful();
+                      ana205.setInterval(0x0F & comm.getParamOne());
 			             break;
-       case ANAMDEB:  comm.commandSuccessful();
-                        Serial << "ANAMDEB" <<endl;
-                        comm.sendStatus( 'H' );
+       case ANAMDE110:  comm.commandSuccessful();
+                      ana110.setInterval(0x0F & comm.getParamOne());
+			             break;
+       case ANAMDE210:  comm.commandSuccessful();
+                      ana210.setInterval(0x0F & comm.getParamOne());
 			             break;
 
        // Commands that demand an immediate response
