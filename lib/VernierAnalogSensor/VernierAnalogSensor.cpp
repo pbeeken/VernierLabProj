@@ -39,7 +39,7 @@ VernierAnalogSensor::readPort() {
 
 
 /**
- * raw immediate read of selected analog channel
+ * poll the port and take data if the conditions are right
  */
 bool
 VernierAnalogSensor::pollPort() {

@@ -58,11 +58,10 @@ enum SAMPLERATES {
    FASTEST = 1, // 1 msec, practically: 1.5 msec per sample
 };
 
-// Conditions for starting measurement cycle
+// Conditions for starting measurement cycle (bottom 2 bits)
 enum STARTCONDITIONS {
-   BUTTONWAIT = 0x80,
-   RISE_ABOVE  = 0xC0,
-   FALL_BELOW  = 0x40,
+   RISE_ABOVE  = 0x02,
+   FALL_BELOW  = 0x01,
    IMMEDIATE   = 0x00,
 };
 
@@ -123,7 +122,7 @@ class VernierAnalogSensor
     unsigned long _nextRead;     // time to take next reading
     unsigned long _start_us;     // marker for start sequence
     unsigned long _count;        // count of values
-    bool          _trigCond;
+    bool          _trigCond;     // trigger condition has been met
 };
 
 #endif

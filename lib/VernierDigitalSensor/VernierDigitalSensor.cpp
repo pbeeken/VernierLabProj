@@ -42,7 +42,7 @@ VernierDigitalSensor::VernierDigitalSensor( int channel ) {
  *    so the data 'pump is primed'.
  */
 void
-VernierDigitalSensor::initTrigger( int trigger ) {
+VernierDigitalSensor::setTrigger( int trigger ) {
    _trigger = trigger;
    // we need to hold to wait for right condition to start.
    switch( _trigger ) {

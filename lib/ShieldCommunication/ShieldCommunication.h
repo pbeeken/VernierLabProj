@@ -27,15 +27,18 @@ enum CMDS {
    ANAMDE110 = 0x4A,ANAMDE210=0x4E,  // 10 volt inputs
 
    // (... start and stop conditions
-   TRIGMODE = 0x52, STOPMODE = 0x56,
+   //TRIGMODE = 0x52, STOPMODE = 0x56,
 
    // Interogation
    STATUS  = 0x50,
 
-   // Get immediate reads
+   // Immediate reads
    IMMEDA105 = 0x60, IMMEDA205 = 0x64,
    IMMEDA110 = 0x68, IMMEDA210 = 0x6A,
    IMMEDD1 = 0x70,   IMMEDD2 = 0x74,
+
+   // Control LED or read button
+   IMMEDLED = 0x11, IMMEDBTN = 0x10,
 };
 
 // Flags that mark the data sources in the high nibble of the data blob
@@ -43,6 +46,7 @@ enum SOURCES {
    DIG1 = 0x10,   DIG2 = 0x20,
    ANA105 = 0x30, ANA205 = 0x40,
    ANA110 = 0x50, ANA210 = 0x60,
+   BTNSTATE = 0x70,
 };
 
 class ShieldCommunication {

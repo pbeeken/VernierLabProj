@@ -1,15 +1,19 @@
-# SparkFun Vernier-Arduino Shield Library
+# Vernier-Arduino Shield Library
 
-This directory is intended to collect libraries of objects to control the SparkFun Vernier-Arduino Shield.  I have modified and adjusted online code to build a
+![Image of Vernier-Arduino Shield][VerSheImg]
+
+This directory is intended to collect libraries of objects to control the SparkFun Vernier-Arduino Shield. I have modified and adjusted online code to build a
 framework that will work with PlatformIO embedded in Atom that will compile them to build Arduino Projects.  One goal is to provide a general toolkit that would allow students to use a high level language like python in a data analysis framework such as Jupyter, Mathematica or wxMaxima to gather data directly from Vernier sensors without having to rely on proprietary software.  The philosophy of this way of doing labs is to give students a real sense of how engineers and scientists have to think about how automating the process of getting data rather than using canned magic boxes that miraculously provide finished values.
 
 Sparkfun gave out a rich starting point for control of the Vernier Shield.  The design point is to compartmentalize the operations so that a reasonably knowledgeable person can combine these objects into a sequence that will provide data for an experiment which can later be analyzed by other software tools.
 
+## Philosophy
 We start with the idea that the student should know something about what sensor they are connecting.  Even though there is an object for detection of a
 sensor based on its resistance (old school) and room for future expansion using I2C communication (new school) we shouldn't need this object as should recognize and know something about their equipment (an important idea in experimental design.)
 
 The two core operational objects **VernierDigitalSensor** and **VernierAnalogSensor** are designed to be 'non-blocking'.  I want the timing and triggering to be based on the evolution of the microsecond clock and not simply sitting and waiting for something to happen.  The programming of the arduino is designed around a iterating over a repeatedly called function called loop(). This means that we can set conditions for triggering and data acquisition but still be able to interrupt the process without restarting the machine. I realize that this isn't always necessary as rebooting an Arduino is a 2 second process but I wanted to build re-entrant capability as this leads to setting the Vernier-Arduino system up as an acquisition extension of a data analysis tool like Jupyter mentioned above. One can always subclass these objects with blocking routines.
 
+## Bonus Features
 Sparkfun saw fit to include two additional I/O abilities on their board: an LED and a Button for which there are some convenience tools created as well. Having these tools makes it simple to blink the LED 3 times as it boots, for example, and/or wait for a button press to start a measurement.  Other sensor specific objects are subclasses from the _DigitalSensor_ and _AnaogSensor_ objects outlined above.
 
 Rough outline of the folder hierarchy.  All **example/** subfolders contain usage examples that serve as a kind of unit test for the corresponding objects.
@@ -97,9 +101,15 @@ void serialEvent() {
    // is called in the master event loop outside the scope of this code.
 }
 ```
----
-PlatformIO will find your libraries automatically, configure preprocessor's
-include paths and build them.
+## Related Projects
+There is one complete program that is built from this library called VernierArduinoDevice which serves as a base platform for communicating and controlling the Vernier/Arduino Shield through a USB interface. The documentation for this project is separate but is intended to help build a higher level language.
 
-More information about PlatformIO Library Dependency Finder
-- http://docs.platformio.org/en/stable/librarymanager/ldf.html
+
+---
+
+## Genreal References
+* [atom editor](http://www.atom.io "Atom Hackable Editor")
+* [Platformio](http://platformio.org/ "Open source IoT IDE")
+* [SparkFun Vernier Interface](https://github.com/sparkfun/Vernier_Interface_Shield)
+* [SparkFun Vernier Shield]()
+[VerSheImg]: https://www.vernier.com/images/cache/product.bt-ard.ard-red._arduino._sparkfun._shield._redboard._11897._dev-11575._connected.001.324.183.jpg

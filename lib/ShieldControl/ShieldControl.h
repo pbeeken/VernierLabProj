@@ -15,7 +15,7 @@
 enum STATES {
     CLEAR_ALL = 'C', // System is reseting (rare)
     READY_STATE = 'R', // Armed: waiting for event to start taking data
-    WAITING_STATE ='W', // Just listening for commands
+    WAITING_STATE ='W', // Start looking for trigger event that will start DA
     RUNNING_STATE = 'G', // Actively gathering data
 };
 
@@ -27,14 +27,15 @@ public:
    char getState() { return _state; }
    void setState( char s ) { _state = s; }
 
-   void trigMode( char tm ) { _trigMode = tm; }
+   void setMode( char m ) { _mode = m; }
+   char getMode() { return _mode; }
 
 
    void sendStatus();
 
 private:
    char _state;  // state of engine  READY, RUNNING or WAITING
-   char _trigMode;
+   char _mode;
 
 
 

@@ -71,14 +71,14 @@ class VernierDigitalSensor
 
       // Set trigger state and initialize the system for timing. N.B. this
       // routine will hold for the proper transition for the required state.
-      void initTrigger( int trigger );
+      void setTrigger( int trigger );
 
       // reset the timers and counters
       void begin();       // start the clock
 
       // get the last delta time
       unsigned long getDeltaTime() { return _deltaTime; }
-      unsigned long getAbsTime() { return _absTime; }
+      unsigned long getAbsTime() { return _absTime-_start_us; }
       unsigned long getTransitionCount() { return _transitionCount; }
       char getTransitionType() { return _transitionType; }
 
