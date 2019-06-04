@@ -1,15 +1,15 @@
 # Vernier-Arduino Shield Library
 
-![Image of Vernier-Arduino Shield][VerSheImg]
+![Image of Vernier-Arduino Shield](https://www.vernier.com/images/cache/product.bt-ard.ard-red._arduino._sparkfun._shield._redboard._11897._dev-11575._connected.001.324.183.jpg)
 
 This directory is intended to collect libraries of objects to control the SparkFun Vernier-Arduino Shield. I have modified and adjusted online code to build a
-framework that will work with PlatformIO embedded in Atom that will compile them to build Arduino Projects.  One goal is to provide a general toolkit that would allow students to use a high level language like python in a data analysis framework such as Jupyter, Mathematica or wxMaxima to gather data directly from Vernier sensors without having to rely on proprietary software.  The philosophy of this way of doing labs is to give students a real sense of how engineers and scientists have to think about how automating the process of getting data rather than using canned magic boxes that miraculously provide finished values.
+framework that will work with PlatformIO embedded in VSCode that will compile them to build Arduino Projects.  One goal is to provide a general toolkit that would allow students to use a high level language like python in a data analysis framework such as Jupyter, Mathematica or wxMaxima to gather data directly from Vernier sensors without having to rely on proprietary software.  The philosophy of this way of doing labs is to give students a real sense of how engineers and scientists have to think about automating the process of getting data rather than using canned magic boxes that miraculously provide finished values.
 
-Sparkfun gave out a rich starting point for control of the Vernier Shield.  The design point is to compartmentalize the operations so that a reasonably knowledgeable person can combine these objects into a sequence that will provide data for an experiment which can later be analyzed by other software tools.
+Sparkfun gave out a rich starting point for control of the Vernier Shield.  The design point here is to compartmentalize the operations so that a reasonably knowledgeable person can combine these objects into a sequence that will provide data for an experiment which can later be analyzed by other software tools.
 
 ## Philosophy
 We start with the idea that the student should know something about what sensor they are connecting.  Even though there is an object for detection of a
-sensor based on its resistance (old school) and room for future expansion using I2C communication (new school) we shouldn't need this object as should recognize and know something about their equipment (an important idea in experimental design.)
+sensor based on its resistance (old school) and room for future expansion using I2C communication (new school) we shouldn't need this object as the student should recognize and know something about their equipment (an important idea in experimental design.)
 
 The two core operational objects **VernierDigitalSensor** and **VernierAnalogSensor** are designed to be 'non-blocking'.  I want the timing and triggering to be based on the evolution of the microsecond clock and not simply sitting and waiting for something to happen.  The programming of the arduino is designed around a iterating over a repeatedly called function called loop(). This means that we can set conditions for triggering and data acquisition but still be able to interrupt the process without restarting the machine. I realize that this isn't always necessary as rebooting an Arduino is a 2 second process but I wanted to build re-entrant capability as this leads to setting the Vernier-Arduino system up as an acquisition extension of a data analysis tool like Jupyter mentioned above. One can always subclass these objects with blocking routines.
 
@@ -109,6 +109,7 @@ There is one complete program that is built from this library called VernierArdu
 
 ## Genreal References
 * [atom editor](http://www.atom.io "Atom Hackable Editor")
+* [VSCode editor](https://code.visualstudio.com/)
 * [Platformio](http://platformio.org/ "Open source IoT IDE")
 * [SparkFun Vernier Interface](https://github.com/sparkfun/Vernier_Interface_Shield)
 * [SparkFun Vernier Shield]()
