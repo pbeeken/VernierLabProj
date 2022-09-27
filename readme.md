@@ -1,6 +1,6 @@
 # Vernier-Arduino Shield Library
 
-![Image of Vernier-Arduino Shield](https://www.vernier.com/images/cache/product.bt-ard.ard-red._arduino._sparkfun._shield._redboard._11897._dev-11575._connected.001.324.183.jpg)
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vRB5RxjoWBNee_8kc4jMXvcXFli0UcuuurC4-fQFWDQrTXmBJmm2Daw0M89g1lrvTtC-KgT084eh_tP/pub?w=174&h=170" align="right"/>
 
 This directory is intended to collect libraries of objects to control the SparkFun Vernier-Arduino Shield. I have modified and adjusted online code to build a
 framework that will work with PlatformIO embedded in VSCode that will compile them to build Arduino Projects.  One goal is to provide a general toolkit that would allow students to use a high level language like python in a data analysis framework such as Jupyter, Mathematica or wxMaxima to gather data directly from Vernier sensors without having to rely on proprietary software.  The philosophy of this way of doing labs is to give students a real sense of how engineers and scientists have to think about automating the process of getting data rather than using canned magic boxes that miraculously provide finished values.

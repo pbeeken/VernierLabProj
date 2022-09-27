@@ -27,17 +27,17 @@ VernierAnalogSensor ana210( VernierAnalogSensor::BTA02_10V);
 // This will be replaced by the function for taking data when the time
 // comes.
 int dataCountLimit = 100;
+const char msg[] = "*HELLO*";
 
 /**
  * Setup the Arduino before we enter the endless loop
  */
 void setup() {
         Serial.begin(115200);
-        theLED.blinkFor(1);
+        theLED.blinkFor(3);
         shield.setState( READY_STATE );
+        Serial << msg << endl;
 }
-
-const char msg[] = "Hello World";
 
 /**
  * Run the loop repeatedly
