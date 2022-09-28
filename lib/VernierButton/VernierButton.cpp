@@ -102,3 +102,22 @@ int VernierButton::readPushes()
 bool VernierButton::buttonIsDown() {
 	return !digitalRead(_buttonPin);  // value is pulled high until it is pressed
 }
+
+/** sync(start) synchronize clocks
+ *
+ */
+void
+VernierButton::sync( unsigned long syncTime ) {
+  #ifdef USEINTERUPTS
+    buttonCount = 0;
+  #endif
+  _start_us = syncTime > 0 ? syncTime : micros();
+}
+
+/** get the current clock time (relative to sync)
+ *
+ */
+unsigned long
+VernierButton::getCurrentTime() {
+   return micros() - _start_us;
+}

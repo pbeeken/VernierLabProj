@@ -15,7 +15,11 @@ class VernierButton
     bool readSinglePush();	// read a single button push (as a button up) May block for a short time.
     bool readDoublePush();	// read a double tap. BLOCKS for human reaction time
     int	readPushes();			// count multiple pushes
-    bool buttonIsDown();		// raw read from button. Non-Blocking
+    bool buttonIsDown();		// raw read from button. Non-Blocking (make static?)
+
+    // reset the timers and counters
+    void sync( unsigned long syncTime=0L );       // start the clock
+    unsigned long getCurrentTime();
 
 #ifdef USEINTERUPTS
     volatile static int buttonCount;
@@ -24,6 +28,7 @@ class VernierButton
 
   private:
     int _buttonPin;
+    unsigned long _start_us;         // mark the start time
 };
 
 #endif

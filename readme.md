@@ -112,5 +112,4 @@ There is one complete program that is built from this library called VernierArdu
 * [VSCode editor](https://code.visualstudio.com/)
 * [Platformio](http://platformio.org/ "Open source IoT IDE")
 * [SparkFun Vernier Interface](https://github.com/sparkfun/Vernier_Interface_Shield)
-* [SparkFun Vernier Shield]()
-[VerSheImg]: https://www.vernier.com/images/cache/product.bt-ard.ard-red._arduino._sparkfun._shield._redboard._11897._dev-11575._connected.001.324.183.jpg
+

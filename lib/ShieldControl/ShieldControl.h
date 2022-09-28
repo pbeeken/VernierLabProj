@@ -31,7 +31,7 @@ public:
    char getMode() { return _mode; }
 
 
-   void sendStatus();
+   void sendStatus(int maj_rev, int min_rev);
 
 private:
    char _state;  // state of engine  READY, RUNNING or WAITING

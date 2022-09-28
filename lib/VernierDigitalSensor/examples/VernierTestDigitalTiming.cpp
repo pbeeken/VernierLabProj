@@ -4,12 +4,12 @@
 #include <Arduino.h>
 #include <Streaming.h>
 #include <VernierBlinker.h>
-#include <VernierDigitalInput.h>
+#include <VernierDigitalSensor.h>
 #include <VernierButton.h>
 
 VernierBlinker theLED;
 VernierButton  theButton;
-VernierDigitalInput aGate( VernierDigitalInput::BTD01 );
+VernierDigitalSensor aGate( VernierDigitalSensor::BTD01 );
 
 // Setup the conditions
 void setup() {
@@ -17,8 +17,8 @@ void setup() {
   Serial.begin( 115200 );
 
   Serial << "Testing Photogate Operations." << endl;
-  Serial << "10 blinks, 10Hz" << endl;
-  theLED.setBlinkPeriod(100);
+  Serial << "10 blinks, 20Hz" << endl;
+  theLED.setBlinkPeriod(200);
   theLED.blinkFor(10);
 
 //  Serial << "Waiting for button push" << endl;
@@ -26,40 +26,43 @@ void setup() {
 
   theLED.turnOff();
 
-  aGate.initTrigger(ANY);
-
   Serial << "Go..." << endl;
+  aGate.setTrigger(DTRIGCOND::ANY);
+  aGate.haltPort();
 
 }
 
-int modeCount = 0;
+
 
 //  Loop is executed repeatedly
 void loop() {
+  static int modeCount = 0;
 
  // routine polling
  if ( aGate.pollPort() ) {
-      Serial << aGate.getTransitionCount() << " ";
-      Serial << (aGate.getTransitionType()==RISING_T?"R ":"F ");
-      Serial << aGate.getDeltaTime() << endl;
+      Serial << "==== " << aGate.getCount() << (aGate.getTransitionType()==DTRIGCOND::LOW2HIGH?"R ":"F ")
+             << " -a " << aGate.getAbsTime() << " (" << (aGate.getAbsTime()/1.0E6) << ")"
+             << " -d " << aGate.getDeltaTime() << " (" << (aGate.getDeltaTime()/1.0E6) << ")"
+             " ===" << endl;
    }
 
 // If button hit then report state
 if ( theButton.buttonIsDown() ) {
    // trick for waiting unitl slow meat lets go.
    while( theButton.buttonIsDown() );
-   Serial << " S: " << aGate.readPort() << endl;
+   aGate.sync();
+   aGate.armPort();
    }
 
-if ( aGate.getTransitionCount()%50 == 49 ) {
+if ( aGate.getCount()%10 == 9 ) {
    modeCount = ++modeCount % 3;
    Serial << endl << "====Changing Modes====" << endl;
    if( modeCount==0 )
-      aGate.initTrigger(ANY);
+      aGate.setTrigger(DTRIGCOND::ANY);
    if( modeCount==1 )
-      aGate.initTrigger(RISING_T);
+      aGate.setTrigger(DTRIGCOND::LOW2HIGH);
    if( modeCount==2 )
-      aGate.initTrigger(FALLING_T);
+      aGate.setTrigger(DTRIGCOND::HIGH2LOW);
 }
 
 

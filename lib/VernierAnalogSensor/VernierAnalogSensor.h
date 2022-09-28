@@ -36,33 +36,40 @@ TODO: Provide an identification object to determine calibrations based on I2C
 ****************************************************************/
 #ifndef VernierAnalogSensor_h
 #define VernierAnalogSensor_h
+#include <Arduino.h>
 #include <VernierButton.h>
 
 // Sample Rates 32 values available (bottom 5 bits of first parameter)
-enum SAMPLERATES {
-   BUTTONPRESS = 0,
-   S_30s   = 15,
-   S_10s   = 14,
-   S_5s    = 13,
-   S_2s    = 12,
-   S_1Hz   = 11,
-   S_5Hz   = 10,
-   S_10Hz  = 9, // 100 msec/sample
-   S_20Hz  = 8,
-   S_40Hz  = 7,
-   S_50Hz  = 6,
-   S_100Hz = 5,
-   S_200Hz = 4,
-   S_500Hz = 3,
-   S_1kHz  = 2,
-   FASTEST = 1, // 1 msec, practically: 1.5 msec per sample
+namespace SAMPLERATES {
+  const int   BUTTONPRESS = 0;
+   const int  S_30s = 15;
+   const int  S_10s = 14;
+   const int  S_5s = 13;
+   const int  S_2s = 12;
+   const int  S_1Hz = 11;
+   const int  S_5Hz = 10;
+   const int  S_10Hz = 9; // 100 msec/sample
+   const int  S_20Hz = 8;
+   const int  S_40Hz = 7;
+   const int  S_50Hz = 6;
+   const int  S_100Hz = 5;
+   const int  S_200Hz = 4;
+   const int  S_500Hz = 3;
+   const int  S_1kHz = 2;
+   const int  FASTEST = 1; // 1 msec, practically: 1.5 msec per sample
 };
 
-// Conditions for starting measurement cycle (bottom 2 bits)
-enum STARTCONDITIONS {
-   RISE_ABOVE  = 0x02,
-   FALL_BELOW  = 0x01,
-   IMMEDIATE   = 0x00,
+namespace ATRIGCOND {
+  //      const static int TS_BUTTON     = 0x03;  // FUTURE, UNUSED CURRENTLY
+  const int TS_RISE_ABOVE = 0x02;
+  const int TS_FALL_BELOW = 0x01;
+  const int TS_IMMEDIATE  = 0x00;
+};
+
+namespace STATE {
+  const int TS_HALT       = 0x00;
+  const int TS_ARMED      = 0x10;
+  const int TS_RUN        = 0x20;
 };
 
 /** Constructor
@@ -79,50 +86,80 @@ class VernierAnalogSensor
       int readPort();
 
       // set the sample time for values during polling
-      void setInterval( char intFlag=S_10Hz );
+      void setSampleRate( char intFlag=SAMPLERATES::S_10Hz );
+
+      // set trigger condition (upon arming)
+      void setTrigger( int trigCond=ATRIGCOND::TS_IMMEDIATE, int raw_value=512 );
+
+      // set stop conditions by #points. To set by time then simply divide
+      // the time by the sample rate.
+      // e.g. for 10sec at 10Hz pass: 10[sec] * 10 [samples/sec]
+      void setStopCondition( int stopValue );
+
+      // reset the timers and counters
+      void sync( unsigned long syncTime=0L );       // start the clock
+
+      void armPort() { _trigState = STATE::TS_ARMED; }
+      void haltPort() { _trigState = STATE::TS_HALT; }
 
       // intended to be placed in the loop() stub to periodically check the
       // state of the analog channel. It will react to the set of the trigger
-      // condition. Returns true if a trigger condition was met.
+      // conditions and sample rate. It is intended to be non-blocking. It
+      // will also test if stop conditions are met. Returns true if
+      // data values were updated.
+      // If no data is taken then this takes ~10μs on an uno
+      // If data is taken then this takes ~140μs on an uno
       bool pollPort();
 
-      // reset the timers and counters
-      void begin();       // start the clock
-
-      // Getters for data
-      const char*   getUnits() { return _units; } // return sensor's units
-      unsigned long getTime() { return _absTime; }
+      // Getters for data and states
+      unsigned long getAbsTime() { return _absTime; }
       int           getLastRead() { return _rawReading; }
+      unsigned long getCount() { return _count; }
+      unsigned long getCurrentTime();
+      float         getMeasurement() { return applyCalibration(_rawReading); }
+      const char*   getUnits() { return _units; } // return sensor's units
+      // int           getState() { return _trigState; } // return current trigger state
+      // unsigned long getRate()  { return _sampPeriod; } // return the actual sample period
+      // int           getLevel() { return _trigLevel; }
+      // int           getCond()  { return _trigCond; }
+
+      String        getStatus( const char* open );
 
 
-	// constants for 10 bit channels [0-1024]
-   //   the 5V channel has a resolution of 5mV
-   //   the 10V channel has a resolution 0f 20mV but is bipolar
-    const static int BTA01_5V  = 14;  // A0 Pin6 on BTA01
-    const static int BTA01_10V = 15;  // A1 Pin1 on BTA01
-    const static int BTA02_5V  = 16;  // A2 Pin6 on BTA02
-    const static int BTA02_10V = 17;  // A3 Pin1 on BTA02
+	     // constants for 10 bit channels [0-1024]
+       //   the 5V channel has a resolution of 5mV
+       //   the 10V channel has a resolution 0f 20mV but is bipolar
+       const static int BTA01_5V  = 14;  // A0 Pin6 on BTA01
+       const static int BTA01_10V = 15;  // A1 Pin1 on BTA01
+       const static int BTA02_5V  = 16;  // A2 Pin6 on BTA02
+       const static int BTA02_10V = 17;  // A3 Pin1 on BTA02
 
 	// elements for subclassing
   protected:
-  	// default linear calibration
-    virtual float applyCalibration( int adcValue );
-    // default quantities for subclasses
-    float        _slope;
-    float        _intcpt;
-    const char*  _units;
+    	// default linear calibration
+      virtual float applyCalibration( int adcValue );
+      // default quantities for subclasses
+      float        _slope;
+      float        _intcpt;
+      const char*  _units;
 
 	// exclusive to this object
   private:
-    VernierButton _btn;
-    int           _channel;      // channel to read from
-    int           _rawReading;   // last raw reading
-    unsigned long _absTime;      // time of last read ofset from start
-    unsigned long _trigTime;     // how long to wait between readings 0 is button push
-    unsigned long _nextRead;     // time to take next reading
-    unsigned long _start_us;     // marker for start sequence
-    unsigned long _count;        // count of values
-    bool          _trigCond;     // trigger condition has been met
+      VernierButton _btn;
+      int           _channel;      // channel to read from
+      int           _rawReading;   // last raw reading
+      unsigned long _absTime;      // time of last read ofset from sync
+      unsigned long _sampPeriod;   // how long to wait between readings 0 is button push
+      unsigned long _nextRead;     // time to take next reading
+      unsigned long _start_us;     // marker for start sequence
+      unsigned long _count;        // count of values
+
+      unsigned long _stopCond;     // could be count or time
+//      bool          _stopMethod;   // if true then time, false then count.
+
+      int           _trigState;    // trigger state: HALT, ARMED, RUN
+      int           _trigCond;     // triggerconditions: IMMEDIATE, FALL_BELOW, or RISE_ABOVE
+      int           _trigLevel;    // level that can cause trigger
 };
 
 #endif

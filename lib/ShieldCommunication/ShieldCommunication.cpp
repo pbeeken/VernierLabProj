@@ -18,7 +18,7 @@
 
 /**
  * Initialize object to receive
- */
+ **/
 ShieldCommunication::ShieldCommunication() {
    _paramCount = -1;
    // Command is complete, we are ready for another command
@@ -26,7 +26,7 @@ ShieldCommunication::ShieldCommunication() {
 
 /**
  * Ask if the cocommand is still being built
- */
+ **/
 bool
 ShieldCommunication::isCommandBuilding() {
    return _paramCount>0;
@@ -34,7 +34,7 @@ ShieldCommunication::isCommandBuilding() {
 
 /**
  * Ask if the command is complete and parameters are in their place.
- */
+ **/
 bool
 ShieldCommunication::isCommandComplete() {
    return _paramCount==0;
@@ -42,7 +42,7 @@ ShieldCommunication::isCommandComplete() {
 
 /**
  * Ask if the command is ready to be built.
- */
+ **/
 bool
 ShieldCommunication::isReadyToBuild() {
    return _paramCount!=0;
@@ -65,54 +65,51 @@ ShieldCommunication::isReadyToBuild() {
  *  communication is done except by counting characters.  Some command
  *  predicates do not have parameters while others do and the parameters (in
  *  binary might look like commands so we have to be careful.)
- */
+ **/
 void
 ShieldCommunication::collectCommand() {
    // Since this is embeded in a serialEvent ISR there has to be
    // at least one character.  Because we deal with character reception
    // asynchronously we need to set up a state machine to collect the
    // characters to assemble the command.
-      while(Serial.available())
-      {
-         // delay(20);                //DEBUG
-         // digitalWrite(13,HIGH);    //DEBUG
-         // delay(20);                //DEBUG
-         // digitalWrite(13,LOW);     //DEBUG
-         // read a character
-         char cc = (char)Serial.read();
+   while(Serial.available()) {
+     char cc = (char)Serial.read();
+     if ( cc & 0x80 ) { // if the high order bit is set then this is a predicate
+       _paramCount = (int)cc & 0x03; // mask count for additional bytes
+       _predicate = cc;
+       _param[0] = 0;
+       _param[1] = 0;
+       _param[2] = 0;
+       break;
+     } else { // we are a data value
+       if ( _paramCount<1 ) return; // sync error ignore extra data byte
+       --_paramCount; // decrement count
+       _param[_paramCount] = cc;
+       } // ifelse
+    } // while
+}
 
-         // if cmdStatus is -1 then this is the predicate which
-         // also tells us how many more bytes are to follow.
-         if (_paramCount==-1) {
-            _paramCount = cc & 0x03; // mask count for additional bytes
-            _predicate = cc;
-//            Serial << "." << (char) cc << ".";   //DEBUG
-            break;  // We are done here.
-         }
+/**
+ * combine the command into a single unsigned long
+ * data parameters are 7 bits so this is a useful tool
+ **/
+unsigned long
+ShieldCommunication::getParameter() {
+  return (_param[2]<<14) + (_param[1]<<7) + _param[0];
+}
 
-         switch( _paramCount ) {
-            case 0: //No additional parameters. (we don't ever come here)
-                     break;
-            case 1: // One additional parameter
-                     _param1=cc;
-                     // Serial << ">" << (char) cc << "<"; //DEBUG
-                     _paramCount--;
-                     break;
-            case 2: // Two additional parameters
-                     _param2=cc;
-                     // Serial << "}" << (char) cc << "{"; //DEBUG
-                     _paramCount--;
-                     break;
-            case 3: // Nothing for this count currently.
-                     badCommand(); // There are no 3 byte commands
-                     break;
-         }
-   }
+/**
+ * extract a single parameter
+ **/
+char
+ShieldCommunication::getParameter(int i) {
+  if ( i<1 || i>3 ) return 0; // safety first
+  return _param[i-1];
 }
 
 /**
  * Flag the command as having been handled successfully and are returning to wait
- */
+ **/
 void
 ShieldCommunication::commandSuccessful() {
    Serial << "!"; //(char)0x06; //ASCII ACK
@@ -122,7 +119,7 @@ ShieldCommunication::commandSuccessful() {
 
 /**
  * Flag the command as being bad and return to getting a new command
- */
+ **/
 void
 ShieldCommunication::badCommand() {
     Serial << "?"; // (char)0x15; //ASCII NAK
@@ -131,21 +128,21 @@ ShieldCommunication::badCommand() {
 
 /**
  * Format and send current state
- */
+ **/
 void
 ShieldCommunication::sendStatus(char state) {
    Serial << "Status: " << state;
    Serial << " -cmd: " << _predicate << " (0x" << _HEX(_predicate) << ")";
    switch ( _predicate&0x03 ) {
-      case 2:  Serial << " p2: " << _DEC(_param2) << ", 0x" << _HEX(_param2) << ", 0b" << _BIN(_param2);
-      case 1:  Serial << " p1: " << _DEC(_param1) << ", 0x" << _HEX(_param1) << ", 0b" << _BIN(_param1);
+      case 2:  Serial << " p2: " << _DEC(_param[1]) << ", 0x" << _HEX(_param[1]) << ", 0b" << _BIN(_param[1]);
+      case 1:  Serial << " p1: " << _DEC(_param[0]) << ", 0x" << _HEX(_param[0]) << ", 0b" << _BIN(_param[0]);
    }
    Serial << endl;
 }
 
 /**
  * Format and send current state
- */
+ **/
 void
 ShieldCommunication::sendStatus(const char* report) {
    Serial << report; // send a string that is formatted by someone else.
@@ -154,22 +151,61 @@ ShieldCommunication::sendStatus(const char* report) {
 
 /**
  * Send data out through the serial port in a binary fashion
- * a data blob in this environment is composed of two parts:
- * the unsigned long time value and up to a 10 bit value that
- * represents the value from the port.  The uppermost nibble
- * of the value part of the blob is reserved for a flag that
- * identifies the channel the data came in with
- */
+ * a data blob in this environment is organized in the following way:
+      +------+------+------+------+------+------+------+------+
+ byte |   0  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |
+      +------+------+------+------+------+------+------+------+
+      | 0xAA |  seq#  | data  |src|  microseconds since SYNC  |
+ bits |  8   |   11   |  10   | 3 |            32             |
+      +------+------+------+------+------+------+------+------+
+ *
+ **/
 void
-ShieldCommunication::sendDataBlob(unsigned long time, unsigned int value, char channel) {
-   uint16_t highWord = time >> 16;
-   uint16_t lowWord = time & 0xFFFF;
-   // write bigendian 4 consecutive bytes
-   Serial.write( highByte(highWord) );
-   Serial.write( lowByte(highWord) );
-   Serial.write( highByte(lowWord) );
-   Serial.write( lowByte(lowWord) );
-   // write bigendian 2 consecutive byte (with a twist)
-   Serial.write( highByte(value) + (channel) );
-   Serial.write( lowByte(value) );
+ShieldCommunication::sendDataBlob(int index, unsigned long clktime, int raw, int channel) {
+  /**
+  // The arduino does funny things with the ordering of these values.
+  union dataBlob {
+     uint8_t bytes[8];
+     struct {
+       uint8_t id : 8;
+       uint16_t seqNo : 11;
+       uint16_t rawData : 10;
+       uint8_t srcID : 3;
+       uint32_t timestamp : 32;
+     } parts;
+   } db;
+   db.parts.id = 0xAA;
+   db.parts.seqNo = (uint16_t)(index & 0x7FF);
+   db.parts.rawData = (uint16_t)(raw & 0x1FF);
+   db.parts.srcID = (uint8_t)(channel & 0x7);
+   db.parts.timestamp = (uint32_t)clktime;
+  **/
+  index = index % 2048;  // wrap the count to 11 bits
+  // The arduino is little endian. elaborate experimments with unions and bit
+  // field structures cannot adjust for the funny way the data gets ordered.
+  // This is the only sure fire way to avoid the whole gulliver's travels thing
+  char dataBytes[8] = {
+      (char) 0xAA, // flag
+      (char) (( (uint16_t)index) >> 3),  // top 8 bytes of the index
+      (char) (( (0x07 & (uint16_t)index) << 5) + ((uint16_t)raw>>5)),
+      (char) (( (0x1F & (uint16_t)raw) << 3) + (0x7 & channel)),
+      (char) (0xFF & (clktime>>24)),  // the time data is straight forward
+      (char) (0xFF & (clktime>>16)),
+      (char) (0xFF & (clktime>>8)),
+      (char) (0xFF & clktime)
+    };
+
+  for( int i=0; i<8; i++) {
+    Serial.write( dataBytes[i] );
+//    Serial << " " << _BIN(db.bytes[i]);
+  }
+//  Serial << endl;
+}
+
+/**
+ * Send a string (always starts with a space and ends with endl)
+ **/
+void
+ShieldCommunication::sendString( String msg ) {
+  Serial << " " << msg << endl;
 }

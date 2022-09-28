@@ -44,14 +44,15 @@ VernierDigitalInput
 ****************************************************************/
 #ifndef VernierDigitalSensor_h
 #define VernierDigitalSensor_h
+#include <Arduino.h>
 
 
 // Digital trigger conditions
-enum TRIGSTATES {
-  UNDETERMINED=0x00,
-  LOW2HIGH=0x01,  HIGH2LOW=0x02,
-  ANY=0x03,
-  RISING_T=0x04,  FALLING_T=0x05,
+namespace DTRIGCOND {
+  const int UNDETERMINED=0x00;
+  const int LOW2HIGH=0x01;
+  const int HIGH2LOW=0x02;
+  const int ANY=0x03;
 };
 
 class VernierDigitalSensor
@@ -74,13 +75,20 @@ class VernierDigitalSensor
       void setTrigger( int trigger );
 
       // reset the timers and counters
-      void begin();       // start the clock
+      void sync( unsigned long syncTime=0L );       // start the clock
 
-      // get the last delta time
+      void armPort() { _trigState = true; }
+      void haltPort() { _trigState = false; }
+
+      // get timings, There are two timing modes: absolute time is the time
+      // since the last sync. delta time is the time since the last event.
       unsigned long getDeltaTime() { return _deltaTime; }
-      unsigned long getAbsTime() { return _absTime-_start_us; }
-      unsigned long getTransitionCount() { return _transitionCount; }
+      unsigned long getAbsTime() { return _absTime; }
+      unsigned long getCount() { return _transitionCount; }
       char getTransitionType() { return _transitionType; }
+      unsigned long getCurrentTime();
+
+      String        getStatus( const char* open );
 
       // constants for channels
       const static int BTD01  = 2;  // D2
@@ -99,6 +107,8 @@ class VernierDigitalSensor
       unsigned long _transitionCount;  // absolute count of trigger conditions
       unsigned long _absTime;          // absolute timing of trigger relative to start
       unsigned long _start_us;         // mark the start time
+
+      bool           _trigState;       // data taking state
 
 };
 

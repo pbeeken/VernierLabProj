@@ -19,7 +19,6 @@ ShieldControl::ShieldControl() {
 }
 
 void
-ShieldControl::sendStatus() {
-   Serial << "State: " << _state;
-
+ShieldControl::sendStatus(int maj_rev, int min_rev) {
+   Serial << "Revision: " << maj_rev << "." << min_rev <<endl;
 }

@@ -18,16 +18,18 @@ void setup() {
 
   Serial.begin( 115200 );
 
-  Serial << "Testing Analog Operations." << endl;
-  Serial << "10 blinks, 10Hz" << endl;
-  theLED.setBlinkPeriod(100);
-  theLED.blinkFor(10);
+  Serial << "Testing Analog Timing Operations." << endl;
+  Serial << "5 blinks, 5Hz" << endl;
+  theLED.setBlinkPeriod(200);
+  theLED.blinkFor(5);
 
 //  Serial << "Waiting for button push" << endl;
 //  while( !theButton.buttonIsDown() );  // Wait for button push
 
   theLED.turnOff();
-  aGate.initTimer(50000);  // 20 Hz
+  aGate.setSampleRate( SAMPLERATES::S_20Hz );  // 20 Hz
+  aGate.setStopCondition( false, 10 ); // put out 10 values
+  aGate.setTrigger( TRIGCOND::TS_IMMEDIATE, 0);
 
   Serial << "Go..." << endl;
 
@@ -38,38 +40,19 @@ int modeCount = 0;
 //  Loop is executed repeatedly
 void loop() {
 
-   if ( IamDone() ) {
-     return; // after 100 seconds quit.
-     }
-
-   // routine polling
-   if( modeCount>0 ) {
-      if ( aGate.pollPort() ) {
-         Serial << aGate.getTime() << " ";
-         Serial << aGate.getLastRead() << " ";
-         Serial << aGate.getUnits() << endl;
+  if ( aGate.pollPort() ) { // handles everything given the stating point
+         Serial << "==== " <<
+            aGate.getCount() << " " <<
+            aGate.getAbsTime() << " " <<
+            aGate.getLastRead() << " " <<
+            aGate.getUnits() << " ====" << endl;
       }
-   }
 
    // If button hit then report state
    if ( theButton.buttonIsDown() ) {
       // trick for waiting unitl slow meat lets go.
       while( theButton.buttonIsDown() );
-      Serial << " S: " << aGate.readPort() << endl;
-      modeCount++;
-      aGate.begin();
+        aGate.sync();  // reset clock first as this disables triggering
+        aGate.armPort();
       }
-}
-
-
-// kills the job after 100s
-bool IamDone() {
-  static bool once=true;
-  if ( millis() > 20000 ) {
-    if ( once )  // print one time.
-      Serial << "I'm done here." << endl;
-    once = false;
-    return true;
-  }
-  return false;
 }
