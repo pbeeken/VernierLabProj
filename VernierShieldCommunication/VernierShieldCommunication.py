@@ -6,8 +6,8 @@ from functools import reduce
 class Commands:
     # If a command is valid and the data acquisition conditions set by the mode commands
     # are valid then an ACK will be sent by the Arduino otherwise a NACK will be sent.
-    HALT = 0x80  # 0b10000000  128   🢂 stop all activity and return to READY
-    ARM = 0x84 | 0x01  # 0b10000100  132   🢂 begin data acquisition process
+    HALT = 0x80       # 0b10000000  128   ⇨ stop all activity and return to READY
+    ARM = 0x84 | 0x01 # 0b10000100  132   ⇨ begin data acquisition process
     # depending on the conditions set with the mode command the arduino may start sending
     # data blobs right away or may delay based on trigger conditions.
     # resets all triggering and limiting parameters to their defaults.
@@ -21,28 +21,28 @@ class Commands:
     # while the other is scaled to ±10.  Standard Vernier probes are configured to use
     # one or the other but not both. The software can handle both in the event a
     # customized probe requires this.
-    BLINKLED = 0xA8 | 0x01  # 0b10101000  168   🢂 blink led n times with period k
+    BLINKLED = 0xA8 | 0x01  # 0b10101000  168   ⇨ blink led n times with period k
     # param 1: high nibble is # blinks 1-7, low nibble<<6 is period
 
-    IMM_DIG1 = 0x8C  # 0b10001100  140   🢂 read dig port 1
-    IMM_DIG2 = 0x90  # 0b10010000  144   🢂 read dig port 2
-    IMM_AN051 = 0x94  # 0b10010100  148   🢂 read analog  5V port 1
-    IMM_AN101 = 0x98  # 0b10011000  152   🢂 read analog 10V port 1
-    IMM_AN052 = 0x9C  # 0b10011100  156   🢂 read analog  5V port 2
-    IMM_AN102 = 0xA0  # 0b10100000  160   🢂 read analog 10V port 2
+    IMM_DIG1 = 0x8C   # 0b10001100  140   ⇨ read dig port 1
+    IMM_DIG2 = 0x90   # 0b10010000  144   ⇨ read dig port 2
+    IMM_AN051 = 0x94  # 0b10010100  148   ⇨ read analog  5V port 1
+    IMM_AN101 = 0x98  # 0b10011000  152   ⇨ read analog 10V port 1
+    IMM_AN052 = 0x9C  # 0b10011100  156   ⇨ read analog  5V port 2
+    IMM_AN102 = 0xA0  # 0b10100000  160   ⇨ read analog 10V port 2
     # all of the above commands will return a single datablob with seq#': 0
 
-    IMM_BUTSTATE = 0xA4  # 0b10100100  164   🢂 get button press
-    MDE_SYNC = 0xD0      # 0b11010000  208   🢂 sync the clocks
-    MDE_ASAMPTIME = 0xAC | 0x01  # 0b10101100  172   🢂 set sample rate
+    IMM_BUTSTATE = 0xA4  # 0b10100100  164   ⇨ get button press
+    MDE_SYNC = 0xD0      # 0b11010000  208   ⇨ sync the clocks
+    MDE_ASAMPTIME = 0xAC | 0x01  # 0b10101100  172   ⇨ set sample rate
     # sample rate determines the rate at which an analog sample is taken.
     # param: (int) (14bits) which sets the sampling interval [10Hz default]
-    MDE_ASTOP = 0xB0 | 0x02  # 0b10110000  176   🢂 set stop condition
+    MDE_ASTOP = 0xB0 | 0x02  # 0b10110000  176   ⇨ set stop condition
     # set the conditions for which sampling stops and Arduino returns to READY
     # parameter is uint16 (13bits)
     # param: 0 then datablobs will return forever until HALT is received [default]
     # param: high bit is 1: treat rest of word as time in ms if 0: rest of word is a count
-    MDE_ATRIG = 0xB4 | 0x02  # 0b10110100  180   🢂 set trigger condition
+    MDE_ATRIG = 0xB4 | 0x02  # 0b10110100  180   ⇨ set trigger condition
     # set the conditions for which sampling actually starts. parameter is uint16
     # param: 0 then begin immediately [default]
     # high 3 bits the trigger type 1: button press, 2: rising above threshhold on port
@@ -52,7 +52,7 @@ class Commands:
     #                                  2: Ch1 10V, 3: Ch2 10V
     # lowest 10 bits is threshhold for analog values, ignored for digital triggering
 
-    MDE_DTRIG = 0xB8 | 0x01  # 0b10111000  184  🢂 set the digital transition
+    MDE_DTRIG = 0xB8 | 0x01  # 0b10111000  184  ⇨ set the digital transition
     # high nibble of param: port 1 settings: 1: L2H, 2: H2L, 3: ANY transition
     # low nibble of param: port 2 settings: L2H, 2: H2L, 3: ANY transition
     # digital ports trigger when something happens and send a datablob at the
@@ -62,11 +62,11 @@ class Commands:
     # on one port. With this configuration there is no way to distinguish which gate
     # triggered the event.
 
-    ST_ANALOG = 0xC8 | 0x01   # 0b11001000  200   🢂 Status of AnalogPorts
-    #  STASTOP = 0xC4   # 0b11000100  196   🢂 stop status
-    ST_VER = 0xC8    # 0b11001000  200   🢂 version info
-    # STASTATE = 0xCC  # 0b11001100  204   🢂 state
-    # NOP = 0x88  # 0b10001000  136   🢂 not used currently
+    ST_ANALOG = 0xC8 | 0x01   # 0b11001000  200   ⇨ Status of AnalogPorts
+    #  STASTOP = 0xC4   # 0b11000100  196   ⇨ stop status
+    ST_VER = 0xC8    # 0b11001000  200   ⇨ version info
+    # STASTATE = 0xCC  # 0b11001100  204   ⇨ state
+    # NOP = 0x88  # 0b10001000  136   ⇨ not used currently
 
 class Trigger:
     IMMEDIATE = 0x00

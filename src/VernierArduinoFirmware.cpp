@@ -41,7 +41,7 @@ VernierAnalogSensor ana210(VernierAnalogSensor::BTA02_10V);
 
 const char BOOT_MSG[] = "*HELLO*";
 const int MAJOR_REV = 0;
-const int MINOR_REV = 95;
+const int MINOR_REV = 97;
 
 // This will be replaced by the function for taking data when the time
 // comes.
@@ -69,7 +69,7 @@ void syncClocks() {
  */
 void setup() {
         Serial.begin(115200);  // We are talking over USB.
-        theLED.blinkFor(1);
+        theLED.blinkFor(3);
         syncClocks();
         Serial << BOOT_MSG << " ver:" << MAJOR_REV << "." << MINOR_REV << endl; // send boot message
 }

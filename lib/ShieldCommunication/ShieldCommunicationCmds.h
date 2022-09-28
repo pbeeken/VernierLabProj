@@ -9,8 +9,8 @@
 
 namespace CMDS {
 
-  const char HALT    =0x80;          // 0b10000000  128   🢂 stop all activity and return to READY
-  const char ARM     =0x84 | 0x01;   // 0b10000100  132   🢂 begin data acquisition process
+  const char HALT    =0x80;          // 0b10000000  128   ⇨ stop all activity and return to READY
+  const char ARM     =0x84 | 0x01;   // 0b10000100  132   ⇨ begin data acquisition process
   // parameter sets which ports to watch:
   // bit 0-1 analog channel 1 0: ignore, 1: ±6V signal, 2: ±10V signal, 3: both (non-vernier probe)
   // bit 2-4 analog channel 2 0: ignore, 1: ±6V signal, 2: ±10V signal, 3: both (non-vernier probe)
@@ -27,24 +27,24 @@ namespace CMDS {
   // data blobs right away or may delay based on trigger conditions. If the command is valid
   // and the data acquisition conditions set by the mode commands are valid then an ACK will
   // be sent by the Arduino otherwise a NACK will be sent.
-  const char BLINKLED=0xA8 | 0x01;   // 0b10101000  168   🢂 blink led n times with period k
+  const char BLINKLED=0xA8 | 0x01;   // 0b10101000  168   ⇨ blink led n times with period k
   // param 1: high nibble is # blinks 1-7, low nibble<<6 is period
 
   // These are immediate commands that solicit responses almost right away
-  const char IMM_DIG1 =0x8C;          // 0b10001100  140   🢂 read dig port 1
-  const char IMM_DIG2 =0x90;          // 0b10010000  144   🢂 read dig port 2
-  const char IMM_AN051=0x94;          // 0b10010100  148   🢂 read analog  ±6V port 1
-  const char IMM_AN101=0x98;          // 0b10011000  152   🢂 read analog ±10V port 1
-  const char IMM_AN052=0x9C;          // 0b10011100  156   🢂 read analog  ±6V port 2
-  const char IMM_AN102=0xA0;          // 0b10100000  160   🢂 read analog ±10V port 2
-  const char IMM_BUTSTATE=0xA4;       // 0b10100100  164   🢂 get button press
+  const char IMM_DIG1 =0x8C;          // 0b10001100  140   ⇨ read dig port 1
+  const char IMM_DIG2 =0x90;          // 0b10010000  144   ⇨ read dig port 2
+  const char IMM_AN051=0x94;          // 0b10010100  148   ⇨ read analog  ±6V port 1
+  const char IMM_AN101=0x98;          // 0b10011000  152   ⇨ read analog ±10V port 1
+  const char IMM_AN052=0x9C;          // 0b10011100  156   ⇨ read analog  ±6V port 2
+  const char IMM_AN102=0xA0;          // 0b10100000  160   ⇨ read analog ±10V port 2
+  const char IMM_BUTSTATE=0xA4;       // 0b10100100  164   ⇨ get button press
   // all of the above commands will return a single datablob with seq# = 0
 
   // These are setup commands that set the conditions of the shield
-  const char MDE_SYNC     =0xD0;     // 0b11010000  208   🢂 sync the clocks
+  const char MDE_SYNC     =0xD0;     // 0b11010000  208   ⇨ sync the clocks
   // synchronize the clocks across all the channels.
 
-  const char MDE_ASAMPTIME =0xAC | 0x01;   // 0b10101100  172   🢂 set sample rate
+  const char MDE_ASAMPTIME =0xAC | 0x01;   // 0b10101100  172   ⇨ set sample rate
   // sample rate determines the rate at which an analog sample is taken.
   // There are pre-determined sample rates that can be used.
   //    BUTTONPRESS = 0,  S_30s   = 15, S_10s   = 14, S_5s    = 13,
@@ -53,20 +53,20 @@ namespace CMDS {
   //        S_200Hz = 4,  S_500Hz = 3,  S_1kHz  = 2,  FASTEST = 1, --1 msec, practically: 1.5 msec per sample
   // param: (int) (14bits) which sets the sampling interval [10Hz default]
 
-  const char MDE_ASTOP =0xB0 | 0x02;   // 0b10110000  176   🢂 set stop condition
+  const char MDE_ASTOP =0xB0 | 0x02;   // 0b10110000  176   ⇨ set stop condition
   // set the conditions for which sampling stops and Arduino returns to READY
   // parameter is uint16 (14bits)
   // param: 0 then datablobs will return forever until HALT is received [default]
   // param: two 7bit values are combined to give the count.
 
-  const char MDE_ATRIG =0xB4 | 0x02;   // 0b10110100  180   🢂 set trigger condition
+  const char MDE_ATRIG =0xB4 | 0x02;   // 0b10110100  180   ⇨ set trigger condition
   // set the conditions for which sampling actually starts. parameter is uint16
   // high 2 bits the trigger type 0: immediate, 1: button press, 2: rising above threshhold on port
   //                              3: falling below threshhold on port
   // next 2 bits is the port to control 1: Ch1 or 2: Ch2
   // lowest 10 bits is threshhold for analog values,
 
-  const char MDE_DTRIG =0xB8 | 0x01;   // 0b10111000  184   🢂 set the digital transition
+  const char MDE_DTRIG =0xB8 | 0x01;   // 0b10111000  184   ⇨ set the digital transition
   // high nibble of param: channel 1 settings: 1: L2H, 2: H2L, 3: ANY transition
   // low nibble of param: channel 2 settings: L2H, 2: H2L, 3: ANY transition
   // digital ports trigger when something happens and send a datablob at the
@@ -78,14 +78,14 @@ namespace CMDS {
 
   // Status requests. Can be used to see if the Shield has been set up correctly or
   // just interrogate the firmware.
-  const char ST_ANALOG =0xC8 | 0x01;   // 0b11001000  200   🢂 Status of AnalogPorts
+  const char ST_ANALOG =0xC8 | 0x01;   // 0b11001000  200   ⇨ Status of AnalogPorts
   // parameter is simply the 1 indexed bit position of SOURCES port index
-  const char ST_VERS   =0xC8;          // 0b11001000  200   🢂 version info
+  const char ST_VERS   =0xC8;          // 0b11001000  200   ⇨ version info
 
   /*** following is for future expansion
-     const char STASTOP=0xC4;      // 0b11000100  196   🢂 stop status
-     const char STASTATE=0xCC;     // 0b11001100  204   🢂 state
-     const char NOP=0x88;          // 0b10001000  136   🢂 not used currently
+     const char STASTOP=0xC4;      // 0b11000100  196   ⇨ stop status
+     const char STASTATE=0xCC;     // 0b11001100  204   ⇨ state
+     const char NOP=0x88;          // 0b10001000  136   ⇨ not used currently
      const char xxx=0xC4;          // 0b11000100  196
      const char xxx=0xD4;          // 0b11010100  212
      const char xxx=0xD8;          // 0b11011000  216
