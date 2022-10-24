@@ -151,14 +151,19 @@ VernierDigitalSensor::getCurrentTime() {
  */
 String
 VernierDigitalSensor::getStatus( const char* open ) {
-  String msg(open);
-  msg += _trigState==0 ? "ste: H " : "ste: R ";
-  switch( _trigger ) {
-    case DTRIGCOND::UNDETERMINED:   msg += "con: U "; break;
-    case DTRIGCOND::HIGH2LOW:       msg += "con: ⇘ "; break;
-    case DTRIGCOND::LOW2HIGH:       msg += "con: ⇗ "; break;
-    case DTRIGCOND::ANY:            msg += "con: A "; break;
-  }
+        String msg(open);
+        msg += "{";
+        msg += "\"state\": ";
+        msg += _trigState==0 ? "\"H\"" : "\"R\"";
 
-  return msg;
+        msg += ",\"trigger\": ";
+        switch( _trigger ) {
+                case DTRIGCOND::UNDETERMINED:   msg += "\"U\""; break;
+                case DTRIGCOND::HIGH2LOW:       msg += "\"F\""; break;
+                case DTRIGCOND::LOW2HIGH:       msg += "\"R\""; break;
+                case DTRIGCOND::ANY:            msg += "\"A\""; break;
+        }
+
+        msg += "}";
+        return msg;
 }

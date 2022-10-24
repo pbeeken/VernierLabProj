@@ -78,7 +78,7 @@ namespace CMDS {
 
   // Status requests. Can be used to see if the Shield has been set up correctly or
   // just interrogate the firmware.
-  const char ST_ANALOG =0xC8 | 0x01;   // 0b11001000  200   ⇨ Status of AnalogPorts
+  const char ST_PORTS  =0xC8 | 0x01;   // 0b11001000  200   ⇨ Status of Ports
   // parameter is simply the 1 indexed bit position of SOURCES port index
   const char ST_VERS   =0xC8;          // 0b11001000  200   ⇨ version info
 

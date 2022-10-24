@@ -28,10 +28,10 @@ VernierAnalogSensor::VernierAnalogSensor( int channel )
         _intcpt      = 0.0;
         _units       = sUnits;
         _trigState   = STATE::TS_HALT;
-        setSampleRate();          // default: 10Hz
-        setStopCondition( 1000 ); // stop after 1000 points
-        setTrigger();             // default: IMMEDIATE
-        sync();                   // zero the clock
+        setSampleRate(SAMPLERATES::S_10Hz);  // default: 10Hz
+        setStopCondition( 100 );             // stop after 100 points
+        setTrigger();                        // default: IMMEDIATE
+        sync();                              // zero the clock
 }
 
 /**
@@ -220,20 +220,25 @@ VernierAnalogSensor::getCurrentTime() {
 String
 VernierAnalogSensor::getStatus( const char* open ) {
         String msg(open);
+        msg += "{";
+        msg += "\"state\":";
         switch( _trigState ) {
-        case STATE::TS_ARMED: msg += "ste: A "; break;
-        case STATE::TS_RUN:   msg += "ste: R "; break;
-        case STATE::TS_HALT:  msg += "ste: H "; break;
-        }
-        msg += "per: ";    msg += _sampPeriod;   msg += "µs ";
+                case STATE::TS_ARMED: msg += "\"A\""; break;
+                case STATE::TS_RUN:   msg += "\"R\""; break;
+                case STATE::TS_HALT:  msg += "\"H\""; break;
+                }
+
+        msg += ",\"period\":";    msg += _sampPeriod;   //msg += "µs ";
+
+        msg += ",\"trigger\":";
         switch( _trigCond ) {
-        case ATRIGCOND::TS_IMMEDIATE:   msg += "con: I "; break;
-        case ATRIGCOND::TS_FALL_BELOW:  msg += "con: F "; msg += _trigLevel; msg += " "; break;
-        case ATRIGCOND::TS_RISE_ABOVE:  msg += "con: R "; msg += _trigLevel; msg += " "; break;
-        }
+                case ATRIGCOND::TS_IMMEDIATE:   msg += "\"I\""; break;
+                case ATRIGCOND::TS_FALL_BELOW:  msg += "\"F("; msg += _trigLevel; msg += ")\""; break;
+                case ATRIGCOND::TS_RISE_ABOVE:  msg += "\"R("; msg += _trigLevel; msg += ")\""; break;
+                }
 
-//        msg += " stp: "; msg += _stopCond;  msg += _stopMethod ? "µs" : "#";
-        msg += " stp: "; msg += _stopCond;  //msg += _stopMethod ? "µs" : "#";
+        msg += ",\"stop\":"; msg += _stopCond;  //msg += _stopMethod ? "µs" : "#";
 
+        msg += "}";
         return msg;
 }

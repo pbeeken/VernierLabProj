@@ -41,7 +41,7 @@ VernierAnalogSensor ana210(VernierAnalogSensor::BTA02_10V);
 
 const char BOOT_MSG[] = "*HELLO*";
 const int MAJOR_REV = 0;
-const int MINOR_REV = 97;
+const int MINOR_REV = 99;
 
 // This will be replaced by the function for taking data when the time
 // comes.
@@ -132,8 +132,9 @@ void serialEvent() {
                         comm.commandSuccessful();
                         break;
 
-                // blink the led based on parameters
+                // stop the data ports
                 case CMDS::HALT:
+                        comm.commandSuccessful();
                         ana105.haltPort();
                         ana110.haltPort();
                         ana205.haltPort();
@@ -147,11 +148,10 @@ void serialEvent() {
                         comm.commandSuccessful();
                         int blinks = (comm.getParameter() & 0xF0)>>4;
                         unsigned long timing = (unsigned long)(comm.getParameter() & 0x0F)<<6;
-                        if(timing > 0)
-                                theLED.setBlinkPeriod(timing);
+                        if (timing > 0) theLED.setBlinkPeriod(timing);
                         theLED.blinkFor(blinks);
-                  }
-                  break;
+                        }
+                        break;
 
                 // read the current button state
                 case CMDS::IMM_BUTSTATE:
@@ -222,34 +222,34 @@ void serialEvent() {
                 //                              2: falling below threshhold on port, 3: button press
                 // next 2 bits is the port to control 1: Ch1 or 2: Ch2
                 // lowest 10 bits is threshhold for analog values,
-                case CMDS::MDE_ATRIG:  {
-                        int type = (comm.getParameter()>>12)&0x3;
-                        int chan = (comm.getParameter()>>10)&0x3;
-                        if ( chan&0x1 ) {    // trigger conditions for channel 1
-                                ana105.setTrigger( type, comm.getParameter()&0x3FF );
-                                ana110.setTrigger( type, comm.getParameter()&0x3FF );
+                case CMDS::MDE_ATRIG: {
+                                int type = (comm.getParameter()>>12)&0x3;
+                                int chan = (comm.getParameter()>>10)&0x3;
+                                if ( chan&0x1 ) {    // trigger conditions for channel 1
+                                        ana105.setTrigger( type, comm.getParameter()&0x3FF );
+                                        ana110.setTrigger( type, comm.getParameter()&0x3FF );
+                                }
+                                if ( chan&0x2 ) {    // trigger conditions for channel 2
+                                        ana205.setTrigger( type, comm.getParameter()&0x3FF );
+                                        ana210.setTrigger( type, comm.getParameter()&0x3FF );
+                                }
+                                comm.commandSuccessful();
                         }
-                        if ( chan&0x2 ) {    // trigger conditions for channel 2
-                                ana205.setTrigger( type, comm.getParameter()&0x3FF );
-                                ana210.setTrigger( type, comm.getParameter()&0x3FF );
-                        }
-                        comm.commandSuccessful();
-                  }
-                  break;
+                        break;
 
                 // Set the stop condition,
                 // set the conditions for which sampling stops and readings returns to HALT
                 // parameter is simply the number of points.
-                case CMDS::MDE_ASTOP:  {
-//                        bool useTime = (comm.getParameter(2) & 0x040) != 0; // 14th bit (#13 with zero offset) is time/flag count
-                        int data = comm.getParameter() & 0x03FFF; // everything else is the data (time or count)
-                        ana105.setStopCondition( data );
-                        ana205.setStopCondition( data );
-                        ana110.setStopCondition( data );
-                        ana210.setStopCondition( data );
-                        comm.commandSuccessful();
-                }
-                break;
+                case CMDS::MDE_ASTOP: {
+                                // bool useTime = (comm.getParameter(2) & 0x040) != 0; // 14th bit (#13 with zero offset) is time/flag count
+                                int data = comm.getParameter() & 0x03FFF; // everything else is the data (time or count)
+                                ana105.setStopCondition( data );
+                                ana205.setStopCondition( data );
+                                ana110.setStopCondition( data );
+                                ana210.setStopCondition( data );
+                                comm.commandSuccessful();
+                        }
+                        break;
 
                 // Set the digital port signal transitions
                 // high nibble of param: port 1 settings: 1: L2H, 2: H2L, 3: ANY transition
@@ -268,42 +268,47 @@ void serialEvent() {
 
                 // Status messages.
                 case CMDS::ST_VERS: {
-                        comm.commandSuccessful();
-                        String msg("v:");
-                        msg += MAJOR_REV;
-                        msg += ".";
-                        msg += MINOR_REV;
-                        comm.sendString( msg.begin() );
-                  }
-                  break;
+                                comm.commandSuccessful();
+                                String msg("v:");
+                                msg += MAJOR_REV;
+                                msg += ".";
+                                msg += MINOR_REV;
+                                comm.sendString( msg.begin() );
+                        }
+                        break;
 
-                case CMDS::ST_ANALOG: // report analog status
-                        comm.commandSuccessful();
-                        if ( comm.getParameter(1) & bit(SOURCES::ANA105-1) ) { // BTA01_5V
-                            String msg = ana105.getStatus("BTA01_5V: ");
-                            comm.sendString( msg.begin() );
-                            }
-                        if ( comm.getParameter(1) & bit(SOURCES::ANA205-1) ) { // BTA02_5V
-                            String msg = ana205.getStatus("BTA02_5V: ");
-                            comm.sendString( msg.begin() );
-                            }
-                        if ( comm.getParameter(1) & bit(SOURCES::ANA110-1) ) { // BTA01_10V
-                            String msg = ana110.getStatus("BTA01_10V: ");
-                            comm.sendString( msg.begin() );
-                            }
-                        if ( comm.getParameter(1) & bit(SOURCES::ANA210-1) ) { // BTA02_10V
-                            String msg = ana210.getStatus("BTA02_10V: ");
-                            comm.sendString( msg );
-                            }
-                        if ( comm.getParameter(1) & bit(SOURCES::DIG1-1) ) { // BTD01
-                            String msg = dig1.getStatus("BTD01: ");
-                            comm.sendString( msg );
-                            }
-                        if ( comm.getParameter(1) & bit(SOURCES::DIG2-1) ) { // BTD02
-                            String msg = dig2.getStatus("BTD02: ");
-                            comm.sendString( msg );
-                            }
-
+                case CMDS::ST_PORTS: { // report status
+                                comm.commandSuccessful();
+                                if ( comm.getParameter(1) & bit(SOURCES::ANA105-1) ) { // BTA01_5V
+                                        String msg = ana105.getStatus("\"BTA01_5V\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::ANA205-1) ) { // BTA02_5V
+                                        String msg = ana205.getStatus("\"BTA02_5V\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::ANA110-1) ) { // BTA01_10V
+                                        String msg = ana110.getStatus("\"BTA01_10V\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::ANA210-1) ) { // BTA02_10V
+                                        String msg = ana210.getStatus("\"BTA02_10V\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::DIG1-1) ) { // BTD01
+                                        String msg = dig1.getStatus("\"BTD01\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::DIG2-1) ) { // BTD02
+                                        String msg = dig2.getStatus("\"BTD02\":");
+                                        comm.sendString( msg.begin() );
+                                        }
+                                if ( comm.getParameter(1) & bit(SOURCES::BTN-1) ) { // BTN
+                                        String msg = "\"BTN\":";
+                                        if (theBtn.buttonIsDown()) msg += "true";
+                                        else                       msg += "false";
+                                        comm.sendString( msg.begin() );
+                                        }                        }
                         break;
                         // Set the digital port signal transitions
 

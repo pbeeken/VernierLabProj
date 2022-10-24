@@ -1,6 +1,9 @@
+from encodings import utf_8
 import serial
+import logging
 import bitstring
 import time
+import json
 from functools import reduce
 
 class Commands:
@@ -62,11 +65,11 @@ class Commands:
     # on one port. With this configuration there is no way to distinguish which gate
     # triggered the event.
 
-    ST_ANALOG = 0xC8 | 0x01   # 0b11001000  200   ⇨ Status of AnalogPorts
-    #  STASTOP = 0xC4   # 0b11000100  196   ⇨ stop status
-    ST_VER = 0xC8    # 0b11001000  200   ⇨ version info
-    # STASTATE = 0xCC  # 0b11001100  204   ⇨ state
-    # NOP = 0x88  # 0b10001000  136   ⇨ not used currently
+    ST_PORTS = 0xC8 | 0x01   # 0b11001000  200   ⇨ Status of AnalogPorts
+    #  STASTOP = 0xC4        # 0b11000100  196   ⇨ stop status
+    ST_VER = 0xC8            # 0b11001000  200   ⇨ version info
+    # STASTATE = 0xCC        # 0b11001100  204   ⇨ state
+    # NOP = 0x88             # 0b10001000  136   ⇨ not used currently
 
 class Trigger:
     IMMEDIATE = 0x00
@@ -104,12 +107,14 @@ class Sources:
     ANA210 = 0x6
     BTN = 0x7
 
-class VernierShieldCommunication:
+class VernierShield:
     """
     This is the object that handles all the communication. We want to minimize the number of blocking routines so
     we have a minimum timeout and we need to call a dispatcher to impliment a command
     """
-
+    VERSION = "0.9.7"
+    BOOTMSG = "*HELLO*"
+    
     @staticmethod
     def default_stringhandler(thestring):
         print(thestring)
@@ -141,16 +146,30 @@ class VernierShieldCommunication:
         return seq, data, deltime / 1.0E6, src
 
     # build the object, establish a connection to the arduino/vernier shield
-    def __init__(self, portname="/dev/ttyACM0", wait=2, bootmsg="*HELLO*"):
-        self.serPort = serial.Serial(portname, baudrate=115200, timeout=wait)
-        self.bootmsg = bootmsg
-        self.dig01_handler = self.default_blobhandler
-        self.dig02_handler = self.default_blobhandler
-        self.ana01_handler = self.default_blobhandler
-        self.ana02_handler = self.default_blobhandler
-        self.string_handler = self.default_stringhandler
-        time.sleep(wait)
+    def __init__(self):
+      self.logger = logging.getLogger(__name__)
+      self.logger.info(f"Version {self.VERSION},{self.BOOTMSG}")
 
+      self.dig01_handler = self.default_blobhandler
+      self.dig02_handler = self.default_blobhandler
+      self.ana01_handler = self.default_blobhandler
+      self.ana02_handler = self.default_blobhandler
+      self.string_handler = self.default_stringhandler
+
+    # context methods for the with construction
+    def __enter__(self):
+      # future note, if we use context manager library we can expand this a bit:
+      #       https://stackoverflow.com/questions/5109507/pass-argument-to-enter
+      self.open(portname="/dev/ttyACM0", wait=2)
+      return self
+
+    def __exit__(self, type, value, traceback):
+      self.close()
+      # We let normal endings and KeyboardInterrupts exit normally
+      if isinstance(value, KeyboardInterrupt) or value == None:
+          return True
+      return False
+        
     # set the dataHandler for a given dataSource
     def set_data_dataHandler(self, src, blobHandler=None):
         if blobHandler is None:
@@ -185,16 +204,19 @@ class VernierShieldCommunication:
             raise Exception("Don't understand ack/nak response.", cc)
 
     # if we restarted our machine then this is the string that signals the Arduino is ready
-    def wait_for_start(self):
-        print("wait_for_start")
+    def open(self, portname="/dev/ttyACM0", wait=2):
+        self.serPort = serial.Serial(portname, baudrate=115200, timeout=wait)
+        time.sleep(wait) # the act of opening a port causes the arduino to reset.
+        self.logger.info("  open waiting for start", end='')
         for i in range(5):  # Take three shots at this.
-            print('.', end='')  # visual feedback
-            if self.serPort.inWaiting() > len(self.bootmsg):
+            self.logger.info('.', end='')  # visual feedback
+            if self.serPort.inWaiting() >= len(self.BOOTMSG):
                 handshake = self.serPort.readline()
-                if self.bootmsg in handshake.decode():
-                    print(handshake.decode()[:-2])
+                if self.BOOTMSG in handshake.decode():
+                    self.logger.info(handshake.decode()[:-2] + "-Good")
                     return True
             time.sleep(1.0)  # snooze for a short while
+        self.logger.info("Timed out")
         return False
 
     # send a command, low level. Builds parameters and waits for response.
@@ -261,7 +283,7 @@ class VernierShieldCommunication:
                 raw_datablob = self.serPort.read(
                     7)  # if we got the starting 0xAA these should come in the requisite timeout
                 self.dispatch_blob(raw_datablob)
-            if cc == b' ':  # singnal we are getting a string
+            if cc == b' ':  # signal we are getting a string
                 raw_string = self.serPort.readline()
                 self.dispatch_string(raw_string)
 
@@ -274,7 +296,7 @@ class VernierShieldCommunication:
             # gather 7 additional bytes
             rawdatablob = self.serPort.read(7)  # if we got the starting 0xAA these should come in the requisite timeout
             return self.decode_datablob(rawdatablob)
-        elif cc == b' ':  # singnal we are getting a string
+        elif cc == b' ':  # signal we are getting a string
             rawstring = self.serPort.readline()
             return rawstring[:-2]
 
@@ -307,13 +329,35 @@ class VernierShieldCommunication:
         return self.send_command(Commands.MDE_ASTOP, [0x7F & (num_points >> 7), 0x7F & num_points])
 
     # get details of analog status
-    def get_status(self, chanlist=[Sources.ANA105, Sources.ANA205, Sources.DIG1, Sources.DIG2]):
+    def get_status(self, chanlist=None):
+        # Note about an interesting bug: if I use chanlist as a local variable and append to it
+        #                                the default values get changed. Who knew? A serious python
+        #                                programmer. One solution is to make a 'deep copy' but this seems
+        #                                a better way:
+        if chanlist == None:
+            chanlist = [Sources.ANA105, Sources.ANA205, Sources.DIG1, Sources.DIG2]
+        print(chanlist)  # DEBUG
         if isinstance(chanlist, int): # in case someone gave us a single value.
             chanlist = [chanlist]
+        numChannels = len(chanlist)
         chanlist.append(0)
         chanlist.reverse()
-        chan = reduce(lambda sm, e: sm | (1 << (e-1)), chanlist)
-        return self.send_command(Commands.ST_ANALOG, chan)
+        chan = reduce(lambda sm, e: sm | (1 << e), chanlist)
+        chan = chan >> 1
+        
+        if self.send_command(Commands.ST_PORTS, chan):
+            ans = []
+            for i in range(numChannels):
+                bstr = self.wait_for_response()
+                if bstr != None:
+                    ans.append(bstr.decode('UTF-8'))
+                else:
+                    return ans # failure, return raw value
+            try:
+                return json.loads("{" + (",".join(ans)) + "}")
+            finally:
+                return ans
+        return "Communication Failed."
 
     # set the conditions for the digital trigger
     def set_digital_trigger(self, trigger_conditions=[Trigger.ANY]):
@@ -329,7 +373,10 @@ class VernierShieldCommunication:
 
     # get version of the shield firmware
     def get_version(self):
-        return self.send_command(Commands.ST_VER)
+        if self.send_command(Commands.ST_VER):
+            bstr = self.wait_for_response()
+            return bstr.decode('UTF-8')
+        return "Communication Failed."
 
     # close the serial port
     def close(self):
@@ -337,7 +384,7 @@ class VernierShieldCommunication:
 
     # timed loop, run loop for a set time.  Will block for specified time
     def run_loop(self, timelimit=10.0):
-        now = time.clock()
-        while (time.clock()-now) < timelimit:
+        now = time.monotonic()
+        while (time.monotonic()-now) < timelimit:
             self.loop()
 
