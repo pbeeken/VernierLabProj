@@ -6,6 +6,7 @@ import time
 import json
 from functools import reduce
 
+
 class Commands:
     # If a command is valid and the data acquisition conditions set by the mode commands
     # are valid then an ACK will be sent by the Arduino otherwise a NACK will be sent.
@@ -112,7 +113,7 @@ class VernierShield:
     This is the object that handles all the communication. We want to minimize the number of blocking routines so
     we have a minimum timeout and we need to call a dispatcher to impliment a command
     """
-    VERSION = "0.9.7"
+    VERSION = "0.9.9"
     BOOTMSG = "*HELLO*"
     
     @staticmethod
@@ -205,18 +206,34 @@ class VernierShield:
 
     # if we restarted our machine then this is the string that signals the Arduino is ready
     def open(self, portname="/dev/ttyACM0", wait=2):
-        self.serPort = serial.Serial(portname, baudrate=115200, timeout=wait)
-        time.sleep(wait) # the act of opening a port causes the arduino to reset.
-        self.logger.info("  open waiting for start", end='')
-        for i in range(5):  # Take three shots at this.
-            self.logger.info('.', end='')  # visual feedback
-            if self.serPort.inWaiting() >= len(self.BOOTMSG):
-                handshake = self.serPort.readline()
-                if self.BOOTMSG in handshake.decode():
-                    self.logger.info(handshake.decode()[:-2] + "-Good")
-                    return True
-            time.sleep(1.0)  # snooze for a short while
-        self.logger.info("Timed out")
+        """Opens a port for communication with the Vernier Shield
+
+        Parameters
+        ----------
+        portname : srting, optional
+            the port name for the arduino (default is /dev/ttyACM0)
+        wait : int, optional
+            the time in seconds to wait (default is 2)
+
+        Returns
+        -------
+        True if successful
+        """
+        try:
+            self.serPort = serial.Serial(portname, baudrate=115200, timeout=wait)
+            time.sleep(wait) # the act of opening a port causes the arduino to reset.
+            self.logger.info("  open waiting for start", end='')
+            for i in range(5):  # Take three shots at this.
+                self.logger.info('.', end='')  # visual feedback
+                if self.serPort.inWaiting() >= len(self.BOOTMSG):
+                    handshake = self.serPort.readline()
+                    if self.BOOTMSG in handshake.decode():
+                        self.logger.info(handshake.decode()[:-2] + "-Good")
+                        return True
+                time.sleep(1.0)  # snooze for a short while
+            self.logger.info("Timed out")
+        except serial.SerialException as err:
+            print(f"Cannot open {portname}. '{err.strerror}' Not found?")
         return False
 
     # send a command, low level. Builds parameters and waits for response.
@@ -240,16 +257,16 @@ class VernierShield:
                 self.dig02_handler(seq, data, deltime, src)
         elif (src == Sources.ANA105):
             if self.ana01_handler:
-                self.ana01_handler(seq, data*5.0/1024, deltime, src)
+                self.ana01_handler(seq, data, deltime, src)
         elif (src == Sources.ANA110):
             if self.ana01_handler:
-                self.ana01_handler(seq, (data-512)*10.0/512, deltime, src)
+                self.ana01_handler(seq, data, deltime, src)
         elif (src == Sources.ANA205):
             if self.ana02_handler:
                 self.ana02_handler(seq, data, deltime, src)
         elif  (src == Sources.ANA210):
             if self.ana02_handler:
-                self.ana02_handler(seq, (data-512)*10.0/512, deltime, src)
+                self.ana02_handler(seq, data, deltime, src)
 
     # halt the data taking
     def halt_data(self):
@@ -302,6 +319,19 @@ class VernierShield:
 
     # convenience tool for blinking the
     def blink_led(self, times=1, period=0):
+        """Blink the on board LED to signal conditions
+
+        Parameters
+        ----------
+        times : int, optional
+            the number of times to blink to a max of 7 times (default is 1)
+        period : int, optional
+            the time to wait between blinks from 128ms to 2s in 15 different steps (default is 500ms)
+
+        Returns
+        -------
+        True if message is successful returns before the blink is complete.
+        """
         param = ((times & 0x7) << 4) + (period & 0xF)
         return self.send_command(Commands.BLINKLED, param)
 
@@ -330,33 +360,46 @@ class VernierShield:
 
     # get details of analog status
     def get_status(self, chanlist=None):
+        """Get the status of the ports
+
+        Parameters
+        ----------
+        chanlist: a single channel or a list of channel's to report on: optional (default is all 4) 
+
+        Returns
+        -------
+        dictionary of port status
+        """
         # Note about an interesting bug: if I use chanlist as a local variable and append to it
         #                                the default values get changed. Who knew? A serious python
         #                                programmer. One solution is to make a 'deep copy' but this seems
         #                                a better way:
         if chanlist == None:
             chanlist = [Sources.ANA105, Sources.ANA205, Sources.DIG1, Sources.DIG2]
-        print(chanlist)  # DEBUG
+
         if isinstance(chanlist, int): # in case someone gave us a single value.
             chanlist = [chanlist]
+
         numChannels = len(chanlist)
         chanlist.append(0)
         chanlist.reverse()
         chan = reduce(lambda sm, e: sm | (1 << e), chanlist)
         chan = chan >> 1
-        
+        self.logger.info(chanlist)
+
         if self.send_command(Commands.ST_PORTS, chan):
             ans = []
             for i in range(numChannels):
                 bstr = self.wait_for_response()
+                self.logger.info(f" {i}: {bstr}")
                 if bstr != None:
                     ans.append(bstr.decode('UTF-8'))
                 else:
-                    return ans # failure, return raw value
-            try:
-                return json.loads("{" + (",".join(ans)) + "}")
-            finally:
-                return ans
+                    return f"err: {ans}" # failure, return raw value
+            # try:
+            return json.loads("{" + (",".join(ans)) + "}")
+            # finally:
+            #     return f"json: {ans}"
         return "Communication Failed."
 
     # set the conditions for the digital trigger
@@ -373,6 +416,15 @@ class VernierShield:
 
     # get version of the shield firmware
     def get_version(self):
+        """Get the current version of the firmware
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        string with the version.
+        """
         if self.send_command(Commands.ST_VER):
             bstr = self.wait_for_response()
             return bstr.decode('UTF-8')
@@ -380,6 +432,14 @@ class VernierShield:
 
     # close the serial port
     def close(self):
+        """Close the open port
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self.serPort.close()
 
     # timed loop, run loop for a set time.  Will block for specified time

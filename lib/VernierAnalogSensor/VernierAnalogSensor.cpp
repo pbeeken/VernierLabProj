@@ -22,11 +22,12 @@
  */
 VernierAnalogSensor::VernierAnalogSensor( int channel )
 {
-        static const char sUnits[] = "raw";
         _channel     = channel;
         _slope       = 1.0;
         _intcpt      = 0.0;
-        _units       = sUnits;
+        strcpy(_units, "raw");
+        strcpy(_name, "Gen Analog");
+        strcpy(_shortname, "GA");
         _trigState   = STATE::TS_HALT;
         setSampleRate(SAMPLERATES::S_10Hz);  // default: 10Hz
         setStopCondition( 100 );             // stop after 100 points
@@ -238,6 +239,9 @@ VernierAnalogSensor::getStatus( const char* open ) {
                 }
 
         msg += ",\"stop\":"; msg += _stopCond;  //msg += _stopMethod ? "µs" : "#";
+        msg += ",\"units\":"; msg += "\""; msg += _units; msg += "\"";
+        msg += ",\"name\":"; msg += "\""; msg += _name; msg += "\"";
+        msg += ",\"shortname\":"; msg += "\""; msg += _shortname; msg += "\"";
 
         msg += "}";
         return msg;

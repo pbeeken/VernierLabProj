@@ -16,6 +16,12 @@
  *  Tested and developed in PlatformIO for vsCode 3.1.0
  *  PBeeken ByramHills High School 7.12.2017
  *  3/20/2020 Some cosmetic changes
+ *  9/22/2022 Project got put on a back burner while I developed curriculum using Jupyter Notebook
+ *              I realzed that this device would fit perfectly with the labs we run.  This 'firmware'
+ *              runs with just the bare-bones analog and digital input. Control is meant to be done
+ *              using JN running on the same machine as the interface. Data is pulled from the device
+ *              and calibrations based on the device attached to the BTA and BTD connectors are controled
+ *              python.
  ***/
 
 #include <ShieldCommunication.h>
@@ -40,8 +46,8 @@ VernierAnalogSensor ana210(VernierAnalogSensor::BTA02_10V);
 
 
 const char BOOT_MSG[] = "*HELLO*";
-const int MAJOR_REV = 0;
-const int MINOR_REV = 99;
+const char MAJOR_REV[] = "1";
+const char MINOR_REV[] = "03";
 
 // This will be replaced by the function for taking data when the time
 // comes.
@@ -52,7 +58,10 @@ int dataCountLimit = 0;
  * the same starting point. Is this perfect? No. but it is 
  * close enough.
  */
+uint32_t dataCount = 0;
+
 void syncClocks() {
+        dataCount = 0L;
         unsigned long matchClocks = micros();
         dig1.sync(matchClocks);
         dig2.sync(matchClocks);
@@ -69,6 +78,7 @@ void syncClocks() {
  */
 void setup() {
         Serial.begin(115200);  // We are talking over USB.
+        theLED.setBlinkPeriod(200);
         theLED.blinkFor(3);
         syncClocks();
         Serial << BOOT_MSG << " ver:" << MAJOR_REV << "." << MINOR_REV << endl; // send boot message
@@ -147,7 +157,7 @@ void serialEvent() {
                 case CMDS::BLINKLED: {
                         comm.commandSuccessful();
                         int blinks = (comm.getParameter() & 0xF0)>>4;
-                        unsigned long timing = (unsigned long)(comm.getParameter() & 0x0F)<<6;
+                        unsigned long timing = (unsigned long)(comm.getParameter() & 0x0F)<<7;
                         if (timing > 0) theLED.setBlinkPeriod(timing);
                         theLED.blinkFor(blinks);
                         }
@@ -156,43 +166,43 @@ void serialEvent() {
                 // read the current button state
                 case CMDS::IMM_BUTSTATE:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( dataCountLimit++, theBtn.getCurrentTime(), (int)theBtn.buttonIsDown(),SOURCES::BTN );
+                        comm.sendDataBlob( dataCount++, theBtn.getCurrentTime(), (int)theBtn.buttonIsDown(), SOURCES::BTN );
                         break;
 
                 // read the current digital gate 1
                 case CMDS::IMM_DIG1:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( dataCountLimit++, dig1.getCurrentTime(), (int)dig1.readPort(), SOURCES::DIG1 );
+                        comm.sendDataBlob( dataCount++, dig1.getCurrentTime(), (int)dig1.readPort(), SOURCES::DIG1 );
                         break;
 
                 // read the current digital gate 2
                 case CMDS::IMM_DIG2:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( dataCountLimit++, dig2.getCurrentTime(), (int)dig2.readPort(), SOURCES::DIG2 );
+                        comm.sendDataBlob( dataCount++, dig2.getCurrentTime(), (int)dig2.readPort(), SOURCES::DIG2 );
                         break;
 
                 // read the current analog 5V channel 1
                 case CMDS::IMM_AN051:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( dataCountLimit++, ana105.getCurrentTime(), ana105.readPort(), SOURCES::ANA105 );
+                        comm.sendDataBlob( dataCount++, ana105.getCurrentTime(), ana105.readPort(), SOURCES::ANA105 );
                         break;
 
                 // read the current analog 10V channel 1
                 case CMDS::IMM_AN101:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( dataCountLimit++, ana110.getCurrentTime(), ana110.readPort(), SOURCES::ANA110 );
+                        comm.sendDataBlob( dataCount++, ana110.getCurrentTime(), ana110.readPort(), SOURCES::ANA110 );
                         break;
 
                 // read the current analog 5V channel 2
                 case CMDS::IMM_AN052:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( ana205.getCurrentTime(), dataCountLimit++, ana205.readPort(), SOURCES::ANA205 );
+                        comm.sendDataBlob( dataCount++, ana205.getCurrentTime(), ana205.readPort(), SOURCES::ANA205 );
                         break;
 
                 // read the current analog 10V channel 2
                 case CMDS::IMM_AN102:
                         comm.commandSuccessful();
-                        comm.sendDataBlob( ana210.getCurrentTime(), dataCountLimit++, ana210.readPort(), SOURCES::ANA210 );
+                        comm.sendDataBlob( dataCount++, ana210.getCurrentTime(), ana210.readPort(), SOURCES::ANA210 );
                         break;
 
                 // Synchronize the clocks

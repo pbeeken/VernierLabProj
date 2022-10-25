@@ -25,6 +25,13 @@ class VernierDiffVoltage: public VernierAnalogSensor
     const static int BTA01 = VernierAnalogSensor::BTA01_5V;  // A0
     const static int BTA02 = VernierAnalogSensor::BTA02_5V;  // A2
 
+  protected:
+      float        _slope;
+      float        _intcpt;
+      char*        _units;
+      char*        _shortname;
+      char*        _name;
+
 };
 
 #endif

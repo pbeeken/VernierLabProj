@@ -141,7 +141,9 @@ class VernierAnalogSensor
       // default quantities for subclasses
       float        _slope;
       float        _intcpt;
-      const char*  _units;
+      char         _units[5];
+      char         _shortname[5];
+      char         _name[20];
 
 	// exclusive to this object
   private:

@@ -20,8 +20,12 @@ VernierDiffVoltage
  */
 VernierDiffVoltage::VernierDiffVoltage( int channel ) : VernierAnalogSensor( channel )
 {
-  static const char sUnits[] = "V";
+  strcpy(_name, "Voltage +/- 10V");
+  strcpy(_units, "V");
+  strcpy(_shortname, "V10");
+  //_slope = 4; //note correction for Sparkfun circuit done in calculation of Voltage!!
+  //_intercept = -10;
+  
   _slope = 10.0/1024;
   _intcpt = -5.0;
-  _units = sUnits;
 }
