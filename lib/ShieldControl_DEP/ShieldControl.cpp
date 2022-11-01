@@ -7,6 +7,9 @@
 *  PBeeken ByramHills High School 7.12.2017
 *
 *  12 Jul 2017- begin development of a binary communication protocol
+*  ShieldControl was dropped in favor of VernierShieldCommunication which implements
+*     a binary communication protocol and fully operational firmware with control by
+*     a connected python app.
 ****************************************************************/
 
 #include <ShieldControl.h>

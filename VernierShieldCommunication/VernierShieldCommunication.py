@@ -1,11 +1,18 @@
+"""
+This is the front facing piece of the VernierArduinoFirmware application. With the firmware loaded
+onto an arduino Uno this allows us to control the behavior of the machine.  The motivation for this
+library has been to use it within a Jupyter Lab environmwnt which allows easy analysis for for the 
+acquired data,
+"""
+
 from encodings import utf_8
+# documentation for serial: https://pyserial.readthedocs.io/en/latest/pyserial_api.html
 import serial
 import logging
 import bitstring
 import time
 import json
 from functools import reduce
-
 
 class Commands:
     # If a command is valid and the data acquisition conditions set by the mode commands
@@ -124,7 +131,7 @@ class VernierShield:
     #         src (1 or 2), seq (seq value indicating order), data (for dig an open or close), deltime (time in sec)
     @staticmethod
     def default_blobhandler(seq, data, deltime, src):
-        print(f"{src:2d}, {seq:5d}, {data:10}, {deltime:10f}") # f strings
+        print(f"[{src:2d}, {seq:5d}, {data:10}, {deltime:10f}],") # f strings
 
     # decode a recieved datablob to the appropriate handler
     #         +------+------+------+------+------+------+------+
@@ -220,7 +227,7 @@ class VernierShield:
         True if successful
         """
         try:
-            self.serPort = serial.Serial(portname, baudrate=115200, timeout=wait)
+            self.serPort = serial.Serial(portname, baudrate=4*115200, timeout=wait)
             time.sleep(wait) # the act of opening a port causes the arduino to reset.
             self.logger.info("  open waiting for start", end='')
             for i in range(5):  # Take three shots at this.

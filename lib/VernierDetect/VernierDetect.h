@@ -7,7 +7,7 @@ VernierDetect
   package.  The idea is that the students learn how to compose
   data acquisition tools based on the instrumentation they choose.
   This means they know what device they are plugging in to what
-  port and recognize that the values they are getting are voltages
+  port and recognize that the values they are getting are 'voltages'
   that might be converted to readings if there is a proper 
   conversion table.  Instead of this object, therefore, the students
   will be instantiating objects which handle specific sensors.

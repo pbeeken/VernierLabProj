@@ -20,60 +20,64 @@ Rough outline of the folder hierarchy.  All **example/** subfolders contain usag
 
 ```
 |--lib/
-|  |--VernierAnalogSensor/  # Superclass of all analog sensors [VAS]
-|  |  |--examples/
-|  |  |- VernierAnalogSensor.cpp
-|  |  |- VernierAnalogSensor.h
+|  ├─ VernierAnalogSensor/         # Superclass of all analog sensors [BTA]
+|  |   ├─ examples/
+|  |   ├─  VernierAnalogSensor.cpp
+|  |   ├─  VernierAnalogSensor.h
 |  |
-|  |--VernierDigitalSensor/  # Superclass of all digital sensors [VDS]
-|  |  |--examples/
-|  |  |- VernierAnalogSensor.cpp
-|  |  |- VernierAnalogSensor.h
+|  ├─ VernierDigitalSensor/        # Superclass of all digital sensors [BTD]
+|  |   ├─ examples/
+|  |   ├─  VernierAnalogSensor.cpp
+|  |   ├─  VernierAnalogSensor.h
 |  |
-|  |--VernierBlinker/ # Class that controls the LED on the shield
-|  |  |--examples/
-|  |  |- VernierBlinker.cpp
-|  |  |- VernierBlinker.h
+|  ├─ VernierBlinker/              # Class that controls the LED on the shield
+|  |   ├─ examples/
+|  |   ├─  VernierBlinker.cpp
+|  |   ├─  VernierBlinker.h
 |  |
-|  |--VernierButton/ # Class that manages the button on the shield
-|  |  |--examples/
-|  |  |- VernierButton.cpp
-|  |  |- VernierButton.h
+|  ├─ VernierButton/               # Class that manages the button on the shield
+|  |   ├─ examples/
+|  |   ├─  VernierButton.cpp
+|  |   ├─  VernierButton.h
 |  |
-|  |--VernierDetect/ # Class that helps detect information about analog sensor
-|  |  |--examples/
-|  |  |- VernierDetect.cpp
-|  |  |- VernierDetect.h
+|  ├─ VernierDetect/               # Class that helps detect information about analog sensor (Not extensively tested)
+|  |   ├─ examples/
+|  |   ├─  VernierDetect.cpp
+|  |   ├─  VernierDetect.h
 |  |
-|  |--VernierThermistor/ # subclass of VAS specific to Thermistors
-|  |  |--examples/
-|  |  |- VernierThermistor.cpp
-|  |  |- VernierThermistor.h
+|  ├─ VernierThermistor/           # subclass of BTA specific to Thermistors
+|  |   ├─ examples/
+|  |   ├─  VernierThermistor.cpp
+|  |   ├─  VernierThermistor.h
 |  |
-|  |--Vernier1DAccelerometer/ # subclass of VAS specific to 1D accelerometers
-|  |  |--examples/
-|  |  |- Vernier1DAccelerometer.cpp
-|  |  |- Vernier1DAccelerometer.h
+|  ├─ Vernier1DAccelerometer/      # subclass of BTA specific to 1D accelerometers
+|  |   ├─ examples/
+|  |   ├─  Vernier1DAccelerometer.cpp
+|  |   ├─  Vernier1DAccelerometer.h
 |  |
-|  |--VernierDiffVoltSensor/ # subclass of VAS talored to diff. volt sensor.
-|  |  |--examples/
-|  |  |- VernierDiffVoltage.cpp
-|  |  |- VernierDiffVoltage.h
+|  ├─ VernierDiffVoltSensor/       # subclass of BTA talored to diff. volt sensor.
+|  |   ├─ examples/
+|  |   ├─  VernierDiffVoltage.cpp
+|  |   ├─  VernierDiffVoltage.h
 |  |
-|  |--VernierVoltage/ # subclass of VAS talored to basic volt probe.
-|  |  |--examples/
-|  |  |- VernierVoltage.cpp
-|  |  |- VernierVoltage.h
+|  ├─ VernierVoltage/              # subclass of BTA talored to basic volt probe.
+|  |   ├─ examples/
+|  |   ├─  VernierVoltage.cpp
+|  |   ├─  VernierVoltage.h
 |  |
-|  |--ShieldCommunication/ # class that tries to implement a basic communications protocol.
-|  |  |--examples/
-|  |  |- ShieldCommunication.cpp
-|  |  |- ShieldCommunication.h
+|  ├─ VernierPhotogate             # subclass of BTD specific to the Vernier Photogate
+|  │   ├─  examples/
+|  │   ├─  VernierPhotogate.cpp
+|  │   └─  VernierPhotogate.h
+|  ├─ ShieldCommunication/          # class that tries to implement a basic communications protocol.
+|  |   ├─ examples/
+|  |   ├─  ShieldCommunication.cpp
+|  |   ├─  ShieldCommunication.h
 |  |
-|  |- readme.md --> THIS FILE
+|  ├─ readme.md --> THIS FILE
 |
 |--src/  # location where the main source is placed.
-   |- main.cpp # doesn't need to be named this.
+   ├─  src/VernierArduinoFirmware.cpp # doesn't need to be named this.
 ```
 
 Then in `src/main.cpp` you should use:
@@ -101,15 +105,24 @@ void serialEvent() {
    // is called in the master event loop outside the scope of this code.
 }
 ```
-## Related Projects
-There is one complete program that is built from this library called VernierArduinoDevice which serves as a base platform for communicating and controlling the Vernier/Arduino Shield through a USB interface. The documentation for this project is separate but is intended to help build a higher level language.
 
+## The Main Project
+`VernierArduinoFirmware.cpp` is the source code for a controler that is meant to be communicated with by python code on a
+laptop or desktop connected via a USB cable through a virtual serial connection. Depending on the computer the connection
+speed can be bumped up to the 1/2 Megabaud and possibly higher. This is plenty fast for most of what we want to do. 
+
+There is a folder called VernierShieldCommunication which contains demo software and test routines for controlling and retrieving
+the data.
+VernierShieldCommunication/
+├── ArduinoVernierFirmware.md          # detailed documentation on how to build your own python commands
+├── UnitTests
+│   ├── ArduinoFirmwareClient_Test.py  # and example standalone python program
+│   └── Vernier SparkFun Testbed.ipynb # a Jupyter Notebook that is shows off controlling, retrieving and displaying data in a local instance JupyterLab
+└── VernierShieldCommunication.py      # class that defines the routines for communication
 
 ---
-
 ## Genreal References
 * [atom editor](http://www.atom.io "Atom Hackable Editor")
 * [VSCode editor](https://code.visualstudio.com/)
 * [Platformio](http://platformio.org/ "Open source IoT IDE")
 * [SparkFun Vernier Interface](https://github.com/sparkfun/Vernier_Interface_Shield)
-

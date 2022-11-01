@@ -1,5 +1,5 @@
 /***
- * Platform for Vernier Interface Shield
+ * Platform for Vernier Interface Shield as a black box a.k.a. Firmware 
  * 
  * First a shout out to the folks at SparkFun for their nice shield
  * and the code they released.  I couldn't have embarked on this 
@@ -9,19 +9,32 @@
  * it is definitely a work in progress.  As I discover bugs I try to
  * fix them but I am a physics teacher first and a coder second.
  * 
+ * The VernierLab Software can be used in at least two different ways:
+ *   1. Use the collection of objects with Arduino IDE (or better still, vscode and Platformio)
+ *      to directly modify the arduino as a data acquisition system for a specific purpose.
+ *   2. Build a black box 'firmware' application that allows the Arduino and shield to be
+ *      controlled from another computer as the "Labquest" boxes are using their proprietary firmware 
+ *      loaded on whatever microcontroller it runs on.  This file is the source code for just this kind 
+ *      of application. The idea is to set this up, deploy it across a class set of arduino unos with
+ *      the vernier hats. When sporting a nice 3D printed case these boxes can be controlled from python code
+ *      snippets within a Jupyter Notebook which not only allows data acquisition but data analysis as
+ *      well.
+ * 
  * M.I.T. license ensues, feel free to copy and modify anything here but
  * please attribute.
- * 
  * 
  *  Tested and developed in PlatformIO for vsCode 3.1.0
  *  PBeeken ByramHills High School 7.12.2017
  *  3/20/2020 Some cosmetic changes
+ *  ----- Long interval CoVid eneded labs for a while so this project went on a back burner.
  *  9/22/2022 Project got put on a back burner while I developed curriculum using Jupyter Notebook
  *              I realzed that this device would fit perfectly with the labs we run.  This 'firmware'
  *              runs with just the bare-bones analog and digital input. Control is meant to be done
  *              using JN running on the same machine as the interface. Data is pulled from the device
  *              and calibrations based on the device attached to the BTA and BTD connectors are controled
  *              python.
+ * 10/28/2022 Extensive testing and tweaking have verified that this idea works and pretty reliably as well.
+ * 
  ***/
 
 #include <ShieldCommunication.h>
@@ -33,10 +46,19 @@
 #include <VernierAnalogSensor.h>
 #include <VernierBlinker.h>
 
+/**
+ * ShieldControl shield objects
+ *   we just load the basic objects. Data Acquisition (DA) objects return their raw
+ *   digital values. The python libraries that connect to this code on the arduino
+ *   through the USB port will hold the calibration and conversion routines.  The 
+ *   philosophy of this whole framework is the that students should know what they
+ *   are connecting to which port and choose the correct calibration routines.
+ *  
+ **/
 VernierBlinker theLED;
 VernierButton theBtn;
-ShieldCommunication comm;
-//ShieldControl shield;
+
+// DA Sensor Objects
 VernierDigitalSensor dig1(VernierDigitalSensor::BTD01);
 VernierDigitalSensor dig2(VernierDigitalSensor::BTD02);
 VernierAnalogSensor ana105(VernierAnalogSensor::BTA01_5V);
@@ -44,19 +66,16 @@ VernierAnalogSensor ana110(VernierAnalogSensor::BTA01_10V);
 VernierAnalogSensor ana205(VernierAnalogSensor::BTA02_5V);
 VernierAnalogSensor ana210(VernierAnalogSensor::BTA02_10V);
 
+ShieldCommunication comm;
 
 const char BOOT_MSG[] = "*HELLO*";
 const char MAJOR_REV[] = "1";
 const char MINOR_REV[] = "03";
 
-// This will be replaced by the function for taking data when the time
-// comes.
-int dataCountLimit = 0;
-
 /**
  * Synchronize clocks.  This makes sure that the inputs share 
  * the same starting point. Is this perfect? No. but it is 
- * close enough.
+ * close enough.  We also zero the data count while we are at it.
  */
 uint32_t dataCount = 0;
 
@@ -77,7 +96,7 @@ void syncClocks() {
  * Setup the Arduino before we enter the endless loop
  */
 void setup() {
-        Serial.begin(115200);  // We are talking over USB.
+        Serial.begin(4*115200);  // We are talking over USB. 115200  We may be able to push this up to 1E6
         theLED.setBlinkPeriod(200);
         theLED.blinkFor(3);
         syncClocks();
