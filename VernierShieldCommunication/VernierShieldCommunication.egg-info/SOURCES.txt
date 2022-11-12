@@ -1,5 +1,0 @@
-setup.py
-VernierShieldCommunication.egg-info/PKG-INFO
-VernierShieldCommunication.egg-info/SOURCES.txt
-VernierShieldCommunication.egg-info/dependency_links.txt
-VernierShieldCommunication.egg-info/top_level.txt

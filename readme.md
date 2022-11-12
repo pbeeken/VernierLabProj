@@ -105,6 +105,9 @@ void serialEvent() {
    // is called in the master event loop outside the scope of this code.
 }
 ```
+## The Libraries
+You can certainly write code directly to the Arduino Uno (the Sparkfun version) and devise direct control and reading of sensors for specific specialized needs. The purpose of the various objects is to try to consolidate the various ways to talk to the shield so it seems seamless. The other approach is to use the 'Firmware' project to load a multipurpose tool that can then be communicated with code talking over a virtual serial port through the USB connection. Typically the language of choice is an interpreted language like python running inside JupyterLab but this could be node and a custom webpage as well. 
+
 
 ## The Main Project
 `VernierArduinoFirmware.cpp` is the source code for a controler that is meant to be communicated with by python code on a
@@ -122,7 +125,6 @@ VernierShieldCommunication/
 
 ---
 ## Genreal References
-* [atom editor](http://www.atom.io "Atom Hackable Editor")
 * [VSCode editor](https://code.visualstudio.com/)
 * [Platformio](http://platformio.org/ "Open source IoT IDE")
 * [SparkFun Vernier Interface](https://github.com/sparkfun/Vernier_Interface_Shield)
