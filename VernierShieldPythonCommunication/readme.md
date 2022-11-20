@@ -1,6 +1,6 @@
 # Arduino-Vernier-Firmware
 
-![Image of Vernier-Arduino Shield](VerSheImg)
+![Image of Vernier-Arduino Shield](https://cdn.sparkfun.com//assets/parts/9/7/2/4/12858-01.jpg)
 
 This is an attempt at creating a firmware for controlling the [SparkFun Vernier Shield](SparkFun Vernier Shield).  This encapsulates a library of classes which can be used to control specific capabilities of the shield and intended for those who want to create a custom application to take data. This particular project is designed to be a more generic interface to both test the library and to provide ready access to high level routines.
 
@@ -59,7 +59,6 @@ A typical sequence that elicits a response is a IMM_AN051. The command is an 'im
 
 
 ## Genreal References
-* [atom editor](http://www.atom.io "Atom Hackable Editor")
 * [Firmata]("https://www.arduino.cc/en/Reference/Firmata")
 * [Platformio](http://platformio.org/ "Open source IoT IDE")
 * [SparkFun Vernier Shield](https://github.com/sparkfun/Vernier_Interface_Shield)
